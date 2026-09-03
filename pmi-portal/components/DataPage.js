@@ -13,6 +13,9 @@ export default function DataPage({ table, title, desc, fields, columns }) {
   const [form, setForm] = useState({})
   const [myRole, setMyRole] = useState('petugas')
   const [error, setError] = useState('')
+  const [uploading, setUploading] = useState(false)
+
+  const hasFileField = fields.some(f => f.type === 'file')
 
   useEffect(() => { load() }, [])
 
@@ -31,6 +34,18 @@ export default function DataPage({ table, title, desc, fields, columns }) {
   function openAdd() { setEditing(null); setForm({}); setError(''); setShowModal(true) }
   function openEdit(row) { setEditing(row); setForm(row); setError(''); setShowModal(true) }
   function closeModal() { setShowModal(false) }
+
+  async function handleUploadFile(e, fieldKey, bucket) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
+    const { error: uploadErr } = await supabase.storage.from(bucket).upload(filename, file)
+    if (uploadErr) { setError('Gagal upload file: ' + uploadErr.message); setUploading(false); return }
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filename)
+    setForm(f => ({ ...f, [fieldKey]: urlData.publicUrl, [fieldKey + '_nama']: file.name }))
+    setUploading(false)
+  }
 
   async function handleSave() {
     for (const f of fields) {
@@ -97,7 +112,8 @@ export default function DataPage({ table, title, desc, fields, columns }) {
                   <tr key={r.id}>
                     {columns.map(c => (
                       <td key={c.k} className={c.num ? 'num' : ''}>
-                        {c.num ? Number(r[c.k]||0).toLocaleString('id-ID') : (r[c.k] ?? '-')}
+                        {c.file ? (r[c.k] ? <a href={r[c.k]} target="_blank" rel="noreferrer" style={{color:'var(--pmi-red)',fontWeight:600}}>📎 Lihat</a> : '-') :
+                         c.num ? Number(r[c.k]||0).toLocaleString('id-ID') : (r[c.k] ?? '-')}
                       </td>
                     ))}
                     <td>{r.profiles?.nama_lengkap || '-'}</td>
@@ -125,10 +141,17 @@ export default function DataPage({ table, title, desc, fields, columns }) {
               {fields.map(f => (
                 <div className="field" key={f.k}>
                   <label>{f.label}</label>
-                  {f.type === 'select' ? (
+                                {f.type === 'select' ? (
                     <select value={form[f.k]||''} onChange={e=>setForm({...form,[f.k]:e.target.value})}>
                       {f.opts.map(o=><option key={o}>{o}</option>)}
                     </select>
+                  ) : f.type === 'file' ? (
+                    <>
+                      <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={e=>handleUploadFile(e, f.k, f.bucket)} />
+                      {uploading && <div style={{fontSize:12,color:'var(--ink-soft)',marginTop:4}}>Mengunggah...</div>}
+                      {form[f.k+'_nama'] && <div style={{fontSize:12,color:'var(--stock)',marginTop:4}}>✓ {form[f.k+'_nama']} terunggah</div>}
+                      {!form[f.k+'_nama'] && form[f.k] && <div style={{fontSize:12,color:'var(--stock)',marginTop:4}}>✓ File sudah terpasang sebelumnya</div>}
+                    </>
                   ) : (
                     <input type={f.type} value={form[f.k]||''} placeholder={f.ph||''} onChange={e=>setForm({...form,[f.k]:e.target.value})} />
                   )}

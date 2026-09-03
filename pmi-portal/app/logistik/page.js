@@ -13,6 +13,7 @@ export default function LogistikPage() {
         { k:'jumlah', label:'Jumlah', type:'number', req:true },
         { k:'satuan', label:'Satuan', type:'text', req:true, ph:'kg / pcs / karung' },
         { k:'donatur', label:'Donatur (opsional)', type:'text' },
+        { k:'file_bukti_url', label:'Foto Bukti Barang Diterima — opsional', type:'file', bucket:'bukti-logistik' },
       ]}
       columns={[
         { k:'tanggal', label:'Tanggal' },
@@ -20,6 +21,7 @@ export default function LogistikPage() {
         { k:'jumlah', label:'Jumlah', num:true },
         { k:'satuan', label:'Satuan' },
         { k:'donatur', label:'Donatur' },
+        { k:'file_bukti_url', label:'Bukti', file:true },
       ]}
     />
   )

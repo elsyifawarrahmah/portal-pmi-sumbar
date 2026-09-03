@@ -6,6 +6,7 @@ const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/logistik', label: 'Logistik Barang Masuk' },
   { href: '/barang-keluar', label: 'Barang Keluar' },
+  { href: '/pengadaan', label: 'Pengadaan Barang' },
   { href: '/stok', label: 'Stok Barang' },
   { href: '/air', label: 'Distribusi Air Bersih' },
   { href: '/donasi', label: 'Donasi Barang' },
