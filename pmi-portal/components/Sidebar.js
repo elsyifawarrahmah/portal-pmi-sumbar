@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase-browser'
 const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/logistik', label: 'Logistik Barang Masuk' },
+  { href: '/barang-keluar', label: 'Barang Keluar' },
+  { href: '/stok', label: 'Stok Barang' },
   { href: '/air', label: 'Distribusi Air Bersih' },
   { href: '/donasi', label: 'Donasi Barang' },
 ]
@@ -24,7 +26,7 @@ export default function Sidebar() {
     <div className="sidebar">
       <div className="brand">
         <div className="cross">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M10 3H14V10H21V14H14V21H10V14H3V10H10V3Z" fill="#C8102E"/></svg>
+          <img src="/logo-pmi.svg" alt="Logo PMI" style={{width:24,height:24}} />
         </div>
         <div className="title">Portal Data Digital</div>
         <div className="sub">PMI Provinsi Sumatera Barat</div>

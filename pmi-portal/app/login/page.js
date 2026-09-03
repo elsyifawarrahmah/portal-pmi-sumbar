@@ -34,7 +34,7 @@ export default function LoginPage() {
     <div className="login-wrap">
       <div className="login-card">
         <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18}}>
-          <div style={{width:36,height:36,background:'var(--pmi-red)',borderRadius:8}} />
+          <img src="/logo-pmi.svg" alt="Logo PMI" style={{width:40,height:40}} />
           <div>
             <div style={{fontWeight:700,fontSize:15}}>Portal Data Digital</div>
             <div style={{fontSize:11,color:'var(--ink-soft)'}}>PMI Provinsi Sumatera Barat</div>
