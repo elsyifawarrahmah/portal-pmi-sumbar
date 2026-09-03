@@ -42,7 +42,7 @@ export default function LoginPage() {
         </div>
         <h1 style={{fontSize:19,margin:'0 0 4px'}}>{mode==='signin' ? 'Masuk Akun Petugas' : 'Daftar Akun Petugas Baru'}</h1>
         <p style={{fontSize:13,color:'var(--ink-soft)',margin:'0 0 18px'}}>
-          {mode==='signin' ? 'Gunakan email yang terdaftar untuk tim PMI.' : 'Akun baru otomatis berperan sebagai Petugas.'}
+          {mode==='signin' ? 'Gunakan email yang terdaftar untuk tim PMI.' : 'Akun baru otomatis hanya bisa melihat data (viewer).'}
         </p>
         {error && <div className="error-box">{error}</div>}
         <form onSubmit={handleSubmit}>

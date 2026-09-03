@@ -11,11 +11,12 @@ export default function DataPage({ table, title, desc, fields, columns }) {
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState({})
-  const [myRole, setMyRole] = useState('petugas')
+  const [myRole, setMyRole] = useState('viewer')
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
 
   const hasFileField = fields.some(f => f.type === 'file')
+  const isAdmin = myRole === 'admin'
 
   useEffect(() => { load() }, [])
 
@@ -93,8 +94,13 @@ export default function DataPage({ table, title, desc, fields, columns }) {
       <div className="main">
         <div className="topbar">
           <div><h1>{title}</h1><p className="desc">{desc}</p></div>
-          <button className="btn btn-primary" onClick={openAdd}>+ Tambah Data</button>
+          {isAdmin && <button className="btn btn-primary" onClick={openAdd}>+ Tambah Data</button>}
         </div>
+        {!isAdmin && (
+          <div style={{background:'var(--gold-bg)',color:'var(--gold)',padding:'10px 14px',borderRadius:10,fontSize:12.5,fontWeight:600,marginBottom:18}}>
+            👁 Akun kamu hanya bisa melihat data. Untuk menambah atau mengubah, hubungi admin (Kabid).
+          </div>
+        )}
         <div className="panel">
           <div className="panel-head">
             <input placeholder="Cari..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
@@ -102,12 +108,12 @@ export default function DataPage({ table, title, desc, fields, columns }) {
           </div>
           <div style={{overflowX:'auto'}}>
             <table>
-              <thead><tr>{columns.map(c=><th key={c.k}>{c.label}</th>)}<th>Petugas</th><th></th></tr></thead>
+              <thead><tr>{columns.map(c=><th key={c.k}>{c.label}</th>)}<th>Petugas</th>{isAdmin && <th></th>}</tr></thead>
               <tbody>
                 {loading ? (
                   <tr><td colSpan={columns.length+2} style={{textAlign:'center',padding:30,color:'var(--ink-soft)'}}>Memuat data...</td></tr>
                 ) : filtered.length === 0 ? (
-                  <tr><td colSpan={columns.length+2} style={{textAlign:'center',padding:30,color:'var(--ink-soft)'}}>Belum ada data. Klik "Tambah Data" untuk mulai.</td></tr>
+                  <tr><td colSpan={columns.length+2} style={{textAlign:'center',padding:30,color:'var(--ink-soft)'}}>Belum ada data.{isAdmin ? ' Klik "Tambah Data" untuk mulai.' : ''}</td></tr>
                 ) : filtered.map(r => (
                   <tr key={r.id}>
                     {columns.map(c => (
@@ -117,10 +123,12 @@ export default function DataPage({ table, title, desc, fields, columns }) {
                       </td>
                     ))}
                     <td>{r.profiles?.nama_lengkap || '-'}</td>
-                    <td>
-                      <button className="btn btn-ghost" style={{padding:'4px 8px',marginRight:4}} onClick={()=>openEdit(r)}>Edit</button>
-                      <button className="btn btn-ghost" style={{padding:'4px 8px'}} onClick={()=>handleDelete(r.id)}>Hapus</button>
-                    </td>
+                    {isAdmin && (
+                      <td>
+                        <button className="btn btn-ghost" style={{padding:'4px 8px',marginRight:4}} onClick={()=>openEdit(r)}>Edit</button>
+                        <button className="btn btn-ghost" style={{padding:'4px 8px'}} onClick={()=>handleDelete(r.id)}>Hapus</button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

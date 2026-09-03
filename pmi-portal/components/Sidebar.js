@@ -1,4 +1,5 @@
 'use client'
+import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -10,12 +11,27 @@ const LINKS = [
   { href: '/stok', label: 'Stok Barang' },
   { href: '/air', label: 'Distribusi Air Bersih' },
   { href: '/donasi', label: 'Donasi Barang' },
+  { href: '/data-user', label: 'Data User' },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    // catat "terakhir online" tiap 30 detik selagi aplikasi terbuka
+    async function ping() {
+      const { data: userData } = await supabase.auth.getUser()
+      if (userData?.user) {
+        await supabase.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', userData.user.id)
+      }
+    }
+    ping()
+    const interval = setInterval(ping, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -24,13 +40,18 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="sidebar">
+    <>
+      <button className="hamburger-btn" onClick={()=>setCollapsed(c=>!c)} aria-label="Buka/tutup menu"><span></span></button>
+      <div className={`sidebar${collapsed ? ' collapsed' : ''}`}>
       <div className="brand">
-        <div className="cross">
-          <img src="/logo-pmi.svg" alt="Logo PMI" style={{width:24,height:24}} />
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <img src="/logo-pmi.png?v=2" alt="Logo PMI" style={{width:32,height:32,flexShrink:0}} />
+          <div style={{lineHeight:1.25}}>
+            <div style={{fontWeight:700,fontSize:13.5}}>Palang Merah Indonesia</div>
+            <div style={{fontSize:11.5,opacity:.85}}>Provinsi Sumatera Barat</div>
+          </div>
         </div>
-        <div className="title">Portal Data Digital</div>
-        <div className="sub">PMI Provinsi Sumatera Barat</div>
+        <div style={{fontSize:10.5,opacity:.65,marginTop:8,letterSpacing:'.03em',textTransform:'uppercase'}}>Portal Data Digital</div>
       </div>
       <div className="nav">
         {LINKS.map(l => (
@@ -41,6 +62,7 @@ export default function Sidebar() {
         <button onClick={handleLogout} className="btn btn-ghost" style={{width:'100%',marginBottom:8}}>Keluar</button>
         Data tersimpan di database resmi PMI Sumbar.
       </div>
-    </div>
+      </div>
+    </>
   )
 }
