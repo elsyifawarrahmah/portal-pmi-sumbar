@@ -122,6 +122,17 @@ export default function PengadaanPage() {
 
   const filtered = rows.filter(r => JSON.stringify(r).toLowerCase().includes(search.toLowerCase()))
 
+  function exportCSV() {
+    const header = ['Tgl Diajukan','Barang','Jumlah Dibutuhkan','Alasan','Pemasok','Status','Diajukan Oleh'].join(';')
+    const csvRows = filtered.map(r => [r.tanggal_pengajuan, r.jenis_barang, r.jumlah_dibutuhkan, r.alasan, r.pemasok||'', r.status, r.petugas?.nama_lengkap||''].join(';'))
+    const csv = '\uFEFF' + [header, ...csvRows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `pengadaan-${new Date().toISOString().slice(0,10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="app">
       <Sidebar />
@@ -134,6 +145,7 @@ export default function PengadaanPage() {
         <div className="panel">
           <div className="panel-head">
             <input placeholder="Cari barang..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
+            <button className="btn btn-ghost" onClick={exportCSV}>⬇ Export Laporan (CSV)</button>
           </div>
           <div style={{overflowX:'auto'}}>
             <table>

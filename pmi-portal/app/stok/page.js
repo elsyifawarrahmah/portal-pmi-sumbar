@@ -73,6 +73,21 @@ export default function StokPage() {
   }
 
   const filtered = stok.filter(r => r.nama.toLowerCase().includes(search.toLowerCase()))
+
+  function exportCSV() {
+    const header = ['Jenis Barang','Total Masuk','Total Keluar','Sisa Stok','Satuan','Batas Minimum','Status'].join(';')
+    const csvRows = filtered.map(r => {
+      const isLow = r.ambang !== null && r.sisa <= r.ambang
+      const status = r.sisa <= 0 ? 'Habis' : isLow ? 'Menipis' : 'Aman'
+      return [r.nama, r.masuk, r.keluar, r.sisa, r.satuan, r.ambang ?? '', status].join(';')
+    })
+    const csv = '\uFEFF' + [header, ...csvRows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `stok-barang-${new Date().toISOString().slice(0,10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+  }
   const menipis = stok.filter(r => r.ambang !== null && r.sisa <= r.ambang)
 
   return (
@@ -92,6 +107,7 @@ export default function StokPage() {
         <div className="panel">
           <div className="panel-head">
             <input placeholder="Cari barang..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
+            <button className="btn btn-ghost" onClick={exportCSV}>⬇ Export Laporan (CSV)</button>
           </div>
           <div style={{overflowX:'auto'}}>
             <table>
