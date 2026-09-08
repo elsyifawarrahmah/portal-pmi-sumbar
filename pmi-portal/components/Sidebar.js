@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-browser'
 
 const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
+  { href: '/infografis', label: 'Infografis Bencana' },
   { href: '/logistik', label: 'Logistik Barang Masuk' },
   { href: '/barang-keluar', label: 'Barang Keluar' },
   { href: '/pengadaan', label: 'Pengadaan Barang' },
@@ -12,6 +13,7 @@ const LINKS = [
   { href: '/air', label: 'Distribusi Air Bersih' },
   { href: '/donasi', label: 'Donasi Barang' },
   { href: '/data-user', label: 'Data User' },
+  { href: '/backup', label: 'Backup Data' },
 ]
 
 export default function Sidebar() {
