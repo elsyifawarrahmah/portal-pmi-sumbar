@@ -203,8 +203,7 @@ export default function InfografisPage() {
                   <div style={{display:'flex',flexWrap:'wrap',gap:8,alignContent:'flex-start'}}>
                     {show.wilayah_detail.length === 0 ? <span style={{color:'var(--ink-soft)',fontSize:13}}>Belum ada data wilayah.</span> :
                     show.wilayah_detail.map((w,i) => {
-                      const regionMatch = REGIONS.find(r => r.nama.toLowerCase().includes(w.nama.toLowerCase().replace('kab. ','').replace('kota ','')) || w.nama.toLowerCase().includes(r.nama.toLowerCase()))
-                      const warna = regionMatch ? (STATUS_WARNA[show.wilayah_status[regionMatch.id]] || STATUS_WARNA.aman) : STATUS_WARNA.aman
+                      const warna = w.region_id ? (STATUS_WARNA[show.wilayah_status[w.region_id]] || STATUS_WARNA.aman) : STATUS_WARNA.aman
                       return (
                         <div key={i} className="chip" style={{background:warna+'20', border:`1px solid ${warna}55`}}>
                           <span style={{width:8,height:8,borderRadius:'50%',background:warna,display:'inline-block'}}></span>
