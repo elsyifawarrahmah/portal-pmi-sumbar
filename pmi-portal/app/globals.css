@@ -94,3 +94,12 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
   .grid4{grid-template-columns:1fr 1fr;}
   .login-card{padding:26px 20px;margin:16px;}
 }
+
+/* ===== Peta Leaflet (Infografis) ===== */
+.peta-wrap{position:relative;z-index:0;isolation:isolate;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);}
+.peta-sumbar{width:100%;height:440px;background:#cfe3ee;font-family:'Inter',sans-serif;}
+.peta-sumbar .leaflet-control-attribution{font-size:10px;}
+.peta-info{background:rgba(255,255,255,.95);padding:8px 12px;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.25);font-size:12.5px;line-height:1.4;color:var(--ink);min-width:120px;}
+.leaflet-tooltip.peta-label{background:transparent;border:none;box-shadow:none;padding:0;font-family:'Archivo Narrow','Inter',sans-serif;font-weight:700;font-size:11.5px;color:#1B1715;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap;pointer-events:none;}
+.leaflet-tooltip.peta-label::before{display:none;}
+@media (max-width:768px){ .peta-sumbar{height:360px;} }
