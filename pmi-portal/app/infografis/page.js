@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import Sidebar from '@/components/Sidebar'
 import PetaSumbar, { REGIONS, STATUS_WARNA } from '@/components/PetaSumbar'
+import PanelWilayah from '@/components/PanelWilayah'
+import { cocokkanWilayah } from '@/lib/wilayah'
 
 const KOSONG = {
   judul: 'Bencana Hidrometeorologi Sumatera Barat',
@@ -50,8 +52,23 @@ export default function InfografisPage() {
   const [draft, setDraft] = useState(KOSONG)
   const [aktifWilayah, setAktifWilayah] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [extra, setExtra] = useState({ air: [], barang: [], loaded: false, loading: false, error: '' })
 
   useEffect(() => { load() }, [])
+
+  // Data air & barang keluar dimuat sekali, saat wilayah pertama kali diklik
+  useEffect(() => {
+    if (!aktifWilayah || extra.loaded || extra.loading) return
+    ;(async () => {
+      setExtra(e => ({ ...e, loading: true }))
+      const [a, b] = await Promise.all([
+        supabase.from('distribusi_air').select('id, tanggal, kota, liter, penerima_manfaat, no_kendaraan').order('tanggal', { ascending: false }),
+        supabase.from('barang_keluar').select('id, tanggal, jenis_barang, jumlah, satuan, tujuan_penerima, status').order('tanggal', { ascending: false }),
+      ])
+      const err = (a.error || b.error) ? 'Sebagian data (air/barang) gagal dimuat: ' + (a.error?.message || b.error?.message) : ''
+      setExtra({ air: a.data || [], barang: b.data || [], loaded: true, loading: false, error: err })
+    })()
+  }, [aktifWilayah])
 
   async function load() {
     setLoading(true)
@@ -176,7 +193,7 @@ export default function InfografisPage() {
             <div className="poster-section" style={{marginTop:-8, borderTop:'none', borderTopLeftRadius:0, borderTopRightRadius:0}}>
               <div style={{display:'grid', gridTemplateColumns: editing ? '1fr' : '1fr 1.1fr', gap:20, alignItems:'center'}}>
                 <div>
-                  <PetaSumbar statusWilayah={show.wilayah_status} aktif={aktifWilayah} onSelect={editing ? (id)=>setAktifWilayah(id) : undefined} />
+                  <PetaSumbar statusWilayah={show.wilayah_status} aktif={aktifWilayah} onSelect={(id)=>setAktifWilayah(id)} />
                   <div style={{display:'flex',gap:14,justifyContent:'center',marginTop:14,flexWrap:'wrap'}}>
                     {Object.entries(STATUS_WARNA).map(([k,v]) => (
                       <div key={k} style={{display:'flex',alignItems:'center',gap:6,fontSize:11.5}}>
@@ -185,6 +202,9 @@ export default function InfografisPage() {
                       </div>
                     ))}
                   </div>
+                  {!editing && (
+                    <div style={{textAlign:'center',fontSize:12,color:'var(--ink-soft)',marginTop:10}}>👆 Klik wilayah di peta untuk melihat rinciannya.</div>
+                  )}
                   {editing && (
                     <div style={{marginTop:14,borderTop:'1px solid var(--line)',paddingTop:12,textAlign:'center'}}>
                       <div style={{fontSize:12,fontWeight:600,marginBottom:8,color:'var(--ink-soft)'}}>Klik wilayah di peta, lalu atur statusnya:</div>
@@ -200,18 +220,35 @@ export default function InfografisPage() {
                   )}
                 </div>
                 {!editing && (
+                  <div>
+                    {aktifWilayah && (() => {
+                      const w = REGIONS.find(r => r.id === aktifWilayah)
+                      const detail = (show.wilayah_detail || []).filter(d => (d.region_id ? d.region_id === aktifWilayah : cocokkanWilayah(d.nama) === aktifWilayah))
+                      const air = extra.air.filter(r => cocokkanWilayah(r.kota) === aktifWilayah)
+                      const barang = extra.barang.filter(r => cocokkanWilayah(r.tujuan_penerima) === aktifWilayah)
+                      return (
+                        <PanelWilayah
+                          nama={w?.nama || aktifWilayah}
+                          status={show.wilayah_status[aktifWilayah] || 'aman'}
+                          detail={detail} air={air} barang={barang}
+                          loadingData={!extra.loaded} errorData={extra.error}
+                          onClose={() => setAktifWilayah(null)}
+                        />
+                      )
+                    })()}
                   <div style={{display:'flex',flexWrap:'wrap',gap:8,alignContent:'flex-start'}}>
                     {show.wilayah_detail.length === 0 ? <span style={{color:'var(--ink-soft)',fontSize:13}}>Belum ada data wilayah.</span> :
                     show.wilayah_detail.map((w,i) => {
                       const warna = w.region_id ? (STATUS_WARNA[show.wilayah_status[w.region_id]] || STATUS_WARNA.aman) : STATUS_WARNA.aman
                       return (
-                        <div key={i} className="chip" style={{background:warna+'20', border:`1px solid ${warna}55`}}>
+                        <div key={i} className="chip" onClick={w.region_id ? ()=>setAktifWilayah(w.region_id) : undefined} style={{background:warna+'20', border:`1px solid ${warna}55`, cursor: w.region_id ? 'pointer' : 'default'}}>
                           <span style={{width:8,height:8,borderRadius:'50%',background:warna,display:'inline-block'}}></span>
                           <strong>{w.nama}</strong>
                           <span style={{color:'var(--ink-soft)'}}>· {w.kecamatan} Kec · {w.jumlah_sub || '-'} {w.label_sub}</span>
                         </div>
                       )
                     })}
+                  </div>
                   </div>
                 )}
                 {editing && (
