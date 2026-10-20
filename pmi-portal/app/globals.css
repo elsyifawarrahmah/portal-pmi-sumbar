@@ -23,7 +23,17 @@ h1,h2,h3{font-family:'Space Grotesk',sans-serif;}
 .hamburger-btn span::before{top:-5px;}
 .hamburger-btn span::after{top:5px;}
 .main{transition:margin-left .25s ease;}
-.brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.14);}
+.brand{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.14);}
+/* beri ruang agar tombol hamburger tidak menutupi logo */
+.sidebar:not(.collapsed) .brand{padding-top:68px;}
+.brand-logo{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
+.brand-logo img{display:block;flex-shrink:0;}
+.brand-name,.brand-prov{font-family:'Archivo Narrow','Arial Narrow',sans-serif;font-weight:700;line-height:1.02;white-space:nowrap;}
+.brand-name{font-size:15px;}
+.brand-prov{font-size:11.5px;line-height:1.1;}
+.brand-vline{width:2px;align-self:stretch;background:currentColor;opacity:.9;flex-shrink:0;margin:2px 0;}
+/* saat menu ditutup, isi halaman turun sedikit agar tidak tertutup tombol hamburger */
+.sidebar.collapsed ~ .main{padding-top:76px;}
 .brand .cross{width:34px;height:34px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
 .brand .title{font-weight:700;font-size:15px;}
 .brand .sub{font-size:11px;opacity:.75;margin-top:4px;}
@@ -74,6 +84,8 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
   .app{flex-direction:column;}
   .sidebar{width:100%;height:auto;position:relative;flex-direction:column;align-items:stretch;padding:12px 14px;gap:10px;margin-left:0;}
   .sidebar.collapsed{display:none;}
+  .sidebar:not(.collapsed) .brand{padding-top:50px;}
+  .sidebar.collapsed ~ .main{padding-top:68px;}
   .nav{display:flex;padding:0;overflow-x:auto;gap:6px;width:100%;}
   .nav a{white-space:nowrap;padding:8px 14px;font-size:12.5px;margin-bottom:0;border:1px solid rgba(255,255,255,.18);border-radius:20px;flex-shrink:0;}
   .sidebar-foot{border:none;padding:0;width:100%;display:flex;justify-content:flex-end;}

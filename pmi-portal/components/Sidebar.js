@@ -46,14 +46,13 @@ export default function Sidebar() {
       <button className="hamburger-btn" onClick={()=>setCollapsed(c=>!c)} aria-label="Buka/tutup menu"><span></span></button>
       <div className={`sidebar${collapsed ? ' collapsed' : ''}`}>
       <div className="brand">
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <img src="/logo-pmi.png?v=2" alt="Logo PMI" style={{width:32,height:32,flexShrink:0}} />
-          <div style={{lineHeight:1.25}}>
-            <div style={{fontWeight:700,fontSize:13.5}}>Palang Merah Indonesia</div>
-            <div style={{fontSize:11.5,opacity:.85}}>Provinsi Sumatera Barat</div>
-          </div>
+        <div className="brand-logo">
+          <img src="/logo-pmi.png?v=3" alt="Lambang Palang Merah Indonesia" width={40} height={40} />
+          <div className="brand-name">Palang<br />Merah<br />Indonesia</div>
+          <div className="brand-vline" />
+          <div className="brand-prov">Provinsi<br />Sumatera Barat</div>
         </div>
-        <div style={{fontSize:10.5,opacity:.65,marginTop:8,letterSpacing:'.03em',textTransform:'uppercase'}}>Portal Data Digital</div>
+        <div style={{fontSize:10.5,opacity:.65,marginTop:10,letterSpacing:'.03em',textTransform:'uppercase'}}>Portal Data Digital</div>
       </div>
       <div className="nav">
         {LINKS.map(l => (

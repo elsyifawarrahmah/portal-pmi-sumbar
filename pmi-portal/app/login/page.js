@@ -33,12 +33,14 @@ export default function LoginPage() {
   return (
     <div className="login-wrap">
       <div className="login-card">
-        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:18}}>
-          <img src="/logo-pmi.svg" alt="Logo PMI" style={{width:40,height:40}} />
-          <div>
-            <div style={{fontWeight:700,fontSize:15}}>Portal Data Digital</div>
-            <div style={{fontSize:11,color:'var(--ink-soft)'}}>PMI Provinsi Sumatera Barat</div>
+        <div style={{marginBottom:18}}>
+          <div className="brand-logo" style={{gap:10}}>
+            <img src="/logo-pmi.png?v=3" alt="Lambang Palang Merah Indonesia" width={52} height={52} />
+            <div className="brand-name" style={{color:'#000',fontSize:19}}>Palang<br />Merah<br />Indonesia</div>
+            <div className="brand-vline" style={{color:'#000'}} />
+            <div className="brand-prov" style={{color:'#000',fontSize:14.5}}>Provinsi<br />Sumatera Barat</div>
           </div>
+          <div style={{fontSize:10,color:'var(--ink-soft)',textTransform:'uppercase',letterSpacing:'.04em',marginTop:10}}>Portal Data Digital</div>
         </div>
         <h1 style={{fontSize:19,margin:'0 0 4px'}}>{mode==='signin' ? 'Masuk Akun Petugas' : 'Daftar Akun Petugas Baru'}</h1>
         <p style={{fontSize:13,color:'var(--ink-soft)',margin:'0 0 18px'}}>
