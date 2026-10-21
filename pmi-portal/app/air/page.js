@@ -1,5 +1,6 @@
 'use client'
 import DataPage from '@/components/DataPage'
+import { NAMA_WILAYAH } from '@/lib/wilayah'
 
 export default function AirPage() {
   return (
@@ -10,7 +11,7 @@ export default function AirPage() {
       fields={[
         { k:'tanggal', label:'Tanggal', type:'date', req:true },
         { k:'no_kendaraan', label:'Nomor Kendaraan', type:'text', req:true, ph:'B 9461 SFA' },
-        { k:'kota', label:'Kota/Kabupaten', type:'text', req:true },
+        { k:'kota', label:'Kota/Kabupaten', type:'text', req:true, saran:NAMA_WILAYAH },
         { k:'driver', label:'Driver/Asisten', type:'text' },
         { k:'penerima_manfaat', label:'Penerima Manfaat', type:'text', ph:'jumlah jiwa / keterangan' },
         { k:'liter', label:'Jumlah Liter', type:'number', req:true },

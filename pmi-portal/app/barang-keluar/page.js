@@ -81,7 +81,7 @@ export default function BarangKeluarPage() {
       <Sidebar />
       <div className="main">
         <div className="topbar">
-          <div><h1>Barang Keluar</h1><p className="desc">Pengeluaran barang dari gudang, dilengkapi Surat Permintaan Barang.</p></div>
+          <div><h1>Distribusi Barang Bantuan</h1><p className="desc">Penyaluran barang bantuan PMI dari gudang ke wilayah penerima, dilengkapi Surat Permintaan Barang.</p></div>
           <button className="btn btn-primary" onClick={() => { setForm({tanggal: new Date().toISOString().slice(0,10)}); setError(''); setShowModal(true) }}>+ Ajukan Barang Keluar</button>
         </div>
 
@@ -130,7 +130,7 @@ export default function BarangKeluarPage() {
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.45)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50}} onClick={e=>{if(e.target===e.currentTarget)setShowModal(false)}}>
           <div style={{background:'#fff',borderRadius:16,width:'100%',maxWidth:460,maxHeight:'90vh',overflowY:'auto'}}>
             <div style={{padding:'18px 22px',borderBottom:'1px solid var(--line)',display:'flex',justifyContent:'space-between'}}>
-              <h3 style={{margin:0}}>Ajukan Barang Keluar</h3>
+              <h3 style={{margin:0}}>Ajukan Distribusi Barang Bantuan</h3>
               <button onClick={()=>setShowModal(false)} style={{border:'none',background:'none',cursor:'pointer',fontSize:16}}>✕</button>
             </div>
             <div style={{padding:'20px 22px'}}>

@@ -37,3 +37,10 @@ export function cocokkanWilayah(teks) {
   for (const d of DAFTAR) if (n.includes(d.alias)) return d.id
   return null
 }
+
+// Nama wilayah (saran pengisian kolom Kota/Kabupaten supaya cocok dengan peta)
+export const NAMA_WILAYAH = [
+  'Kota Padang', 'Kota Bukittinggi', 'Kota Payakumbuh', 'Kota Solok', 'Kota Pariaman', 'Padang Panjang', 'Sawahlunto',
+  'Agam', 'Tanah Datar', 'Limapuluh Kota', 'Padang Pariaman', 'Pasaman', 'Pasaman Barat', 'Pesisir Selatan',
+  'Kab. Solok', 'Solok Selatan', 'Sijunjung', 'Dharmasraya', 'Kep. Mentawai',
+]

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import Sidebar from './Sidebar'
 
-export default function DataPage({ table, title, desc, fields, columns }) {
+export default function DataPage({ table, title, desc, fields, columns, filterField }) {
   const supabase = createClient()
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
@@ -14,6 +14,7 @@ export default function DataPage({ table, title, desc, fields, columns }) {
   const [myRole, setMyRole] = useState('viewer')
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [filterVal, setFilterVal] = useState('semua')
 
   const hasFileField = fields.some(f => f.type === 'file')
   const isAdmin = myRole === 'admin'
@@ -32,7 +33,12 @@ export default function DataPage({ table, title, desc, fields, columns }) {
     setLoading(false)
   }
 
-  function openAdd() { setEditing(null); setForm({}); setError(''); setShowModal(true) }
+  function nilaiAwal() {
+    const f = {}
+    fields.forEach(x => { if (x.type === 'select' && x.opts?.length) f[x.k] = x.opts[0] })
+    return f
+  }
+  function openAdd() { setEditing(null); setForm(nilaiAwal()); setError(''); setShowModal(true) }
   function openEdit(row) { setEditing(row); setForm(row); setError(''); setShowModal(true) }
   function closeModal() { setShowModal(false) }
 
@@ -53,7 +59,7 @@ export default function DataPage({ table, title, desc, fields, columns }) {
       if (f.req && !form[f.k]) { setError('Lengkapi field wajib: ' + f.label); return }
     }
     const payload = {}
-    fields.forEach(f => { payload[f.k] = form[f.k] ?? null })
+    fields.forEach(f => { payload[f.k] = (form[f.k] === '' || form[f.k] === undefined) ? null : form[f.k] })
 
     if (editing) {
       const { error } = await supabase.from(table).update(payload).eq('id', editing.id)
@@ -86,7 +92,9 @@ export default function DataPage({ table, title, desc, fields, columns }) {
     a.click(); URL.revokeObjectURL(url)
   }
 
-  const filtered = rows.filter(r => JSON.stringify(r).toLowerCase().includes(search.toLowerCase()))
+  const filtered = rows
+    .filter(r => !filterField || filterVal === 'semua' || r[filterField.k] === filterVal)
+    .filter(r => JSON.stringify(r).toLowerCase().includes(search.toLowerCase()))
 
   return (
     <div className="app">
@@ -103,7 +111,15 @@ export default function DataPage({ table, title, desc, fields, columns }) {
         )}
         <div className="panel">
           <div className="panel-head">
-            <input placeholder="Cari..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
+            <div style={{display:'flex',gap:8,flexWrap:'wrap',flex:1}}>
+              <input placeholder="Cari..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
+              {filterField && (
+                <select value={filterVal} onChange={e=>setFilterVal(e.target.value)} style={{width:'auto'}}>
+                  <option value="semua">{filterField.label || 'Semua'}</option>
+                  {filterField.opts.map(o => <option key={o} value={o}>{o}</option>)}
+                </select>
+              )}
+            </div>
             <button className="btn btn-ghost" onClick={exportCSV}>⬇ Export Excel (CSV)</button>
           </div>
           <div style={{overflowX:'auto'}}>
@@ -159,6 +175,11 @@ export default function DataPage({ table, title, desc, fields, columns }) {
                       {uploading && <div style={{fontSize:12,color:'var(--ink-soft)',marginTop:4}}>Mengunggah...</div>}
                       {form[f.k+'_nama'] && <div style={{fontSize:12,color:'var(--stock)',marginTop:4}}>✓ {form[f.k+'_nama']} terunggah</div>}
                       {!form[f.k+'_nama'] && form[f.k] && <div style={{fontSize:12,color:'var(--stock)',marginTop:4}}>✓ File sudah terpasang sebelumnya</div>}
+                    </>
+                  ) : f.saran ? (
+                    <>
+                      <input list={'saran-'+f.k} value={form[f.k]||''} placeholder={f.ph||''} onChange={e=>setForm({...form,[f.k]:e.target.value})} />
+                      <datalist id={'saran-'+f.k}>{f.saran.map(o => <option key={o} value={o} />)}</datalist>
                     </>
                   ) : (
                     <input type={f.type} value={form[f.k]||''} placeholder={f.ph||''} onChange={e=>setForm({...form,[f.k]:e.target.value})} />

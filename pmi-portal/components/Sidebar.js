@@ -6,12 +6,19 @@ import { createClient } from '@/lib/supabase-browser'
 const LINKS = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/infografis', label: 'Infografis Bencana' },
+  { section: 'Logistik' },
   { href: '/logistik', label: 'Logistik Barang Masuk' },
-  { href: '/barang-keluar', label: 'Barang Keluar' },
   { href: '/pengadaan', label: 'Pengadaan Barang' },
   { href: '/stok', label: 'Stok Barang' },
-  { href: '/air', label: 'Distribusi Air Bersih' },
   { href: '/donasi', label: 'Donasi Barang' },
+  { section: 'Produksi' },
+  { href: '/produksi', label: 'Unit & Perlengkapan' },
+  { section: 'Layanan PMI' },
+  { href: '/layanan-kesehatan', label: 'Layanan Kesehatan' },
+  { href: '/bersih-bersih', label: 'Bersih-Bersih' },
+  { href: '/air', label: 'Distribusi Air Bersih' },
+  { href: '/barang-keluar', label: 'Distribusi Barang Bantuan' },
+  { section: 'Pengaturan' },
   { href: '/data-user', label: 'Data User' },
   { href: '/backup', label: 'Backup Data' },
 ]
@@ -55,7 +62,9 @@ export default function Sidebar() {
         <div style={{fontSize:10.5,opacity:.65,marginTop:10,letterSpacing:'.03em',textTransform:'uppercase'}}>Portal Data Digital</div>
       </div>
       <div className="nav">
-        {LINKS.map(l => (
+        {LINKS.map(l => l.section ? (
+          <div key={l.section} className="nav-section">{l.section}</div>
+        ) : (
           <a key={l.href} href={l.href} className={pathname === l.href ? 'active' : ''}>{l.label}</a>
         ))}
       </div>

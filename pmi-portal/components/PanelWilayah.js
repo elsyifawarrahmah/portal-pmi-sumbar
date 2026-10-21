@@ -13,7 +13,20 @@ function tgl(v) {
 const kotak = { background: 'var(--cream)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 14px', marginTop: 10 }
 const judul = { fontSize: 12.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '.03em', marginBottom: 8 }
 
-export default function PanelWilayah({ nama, status, detail, air, barang, loadingData, errorData, onClose }) {
+// Kelompokkan baris per jenis (dan satuan): kembalikan [{ nama, kegiatan, jumlah, satuan }]
+function kelompok(rows, kunci, jumlahKey, satuanKey, satuanTetap) {
+  const m = {}
+  rows.forEach(r => {
+    const satuan = satuanTetap || r[satuanKey] || ''
+    const k = (r[kunci] || 'Lainnya') + '||' + satuan
+    m[k] = m[k] || { nama: r[kunci] || 'Lainnya', satuan, kegiatan: 0, jumlah: 0 }
+    m[k].kegiatan += 1
+    m[k].jumlah += Number(r[jumlahKey] || 0)
+  })
+  return Object.values(m)
+}
+
+export default function PanelWilayah({ nama, status, detail, air, barang, kesehatan = [], bersih = [], loadingData, errorData, onClose }) {
   const warna = STATUS_WARNA[status] || STATUS_WARNA.aman
   const totalLiter = air.reduce((s, r) => s + Number(r.liter || 0), 0)
   const airTerbaru = [...air].sort((a, b) => String(b.tanggal).localeCompare(String(a.tanggal)))
@@ -25,6 +38,8 @@ export default function PanelWilayah({ nama, status, detail, air, barang, loadin
     const key = `${b.jenis_barang}||${b.satuan}`
     ringkasBarang[key] = (ringkasBarang[key] || 0) + Number(b.jumlah || 0)
   })
+  const grupKesehatan = kelompok(kesehatan, 'jenis_layanan', 'jumlah_penerima', null, 'orang')
+  const grupBersih = kelompok(bersih, 'jenis_kegiatan', 'jumlah_terlayani', 'satuan')
   const daftarBarang = Object.entries(ringkasBarang).map(([k, v]) => { const [nama, satuan] = k.split('||'); return { nama, satuan, jumlah: v } })
 
   return (
@@ -102,8 +117,36 @@ export default function PanelWilayah({ nama, status, detail, air, barang, loadin
           )}
       </div>
 
+      {/* Layanan kesehatan */}
+      <div style={kotak}>
+        <div style={judul}>🩺 Layanan Kesehatan</div>
+        {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
+          grupKesehatan.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada layanan kesehatan tercatat untuk wilayah ini.</div> : (
+            grupKesehatan.map(g => (
+              <div key={g.nama} style={{ fontSize: 13, padding: '4px 0' }}>
+                <strong>{g.nama}</strong>
+                <span style={{ color: 'var(--ink-soft)' }}> · {fmt(g.kegiatan)} kegiatan · {fmt(g.jumlah)} {g.satuan}</span>
+              </div>
+            ))
+          )}
+      </div>
+
+      {/* Bersih-bersih */}
+      <div style={kotak}>
+        <div style={judul}>🧹 Bersih-Bersih</div>
+        {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
+          grupBersih.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada kegiatan bersih-bersih tercatat untuk wilayah ini.</div> : (
+            grupBersih.map(g => (
+              <div key={g.nama + g.satuan} style={{ fontSize: 13, padding: '4px 0' }}>
+                <strong>{g.nama}</strong>
+                <span style={{ color: 'var(--ink-soft)' }}> · {fmt(g.kegiatan)} kegiatan · {fmt(g.jumlah)} {g.satuan}</span>
+              </div>
+            ))
+          )}
+      </div>
+
       <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 10 }}>
-        Data air dan barang dicocokkan dari nama kota/tujuan yang diketik petugas.
+        Data air, barang, kesehatan, dan bersih-bersih dicocokkan dari nama kota/tujuan yang diketik petugas.
       </div>
     </div>
   )

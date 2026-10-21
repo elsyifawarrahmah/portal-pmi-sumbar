@@ -52,7 +52,7 @@ export default function InfografisPage() {
   const [draft, setDraft] = useState(KOSONG)
   const [aktifWilayah, setAktifWilayah] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [extra, setExtra] = useState({ air: [], barang: [], loaded: false, loading: false, error: '' })
+  const [extra, setExtra] = useState({ air: [], barang: [], kes: [], bersih: [], loaded: false, loading: false, error: '' })
 
   useEffect(() => { load() }, [])
 
@@ -61,12 +61,14 @@ export default function InfografisPage() {
     if (!aktifWilayah || extra.loaded || extra.loading) return
     ;(async () => {
       setExtra(e => ({ ...e, loading: true }))
-      const [a, b] = await Promise.all([
+      const [a, b, k, c] = await Promise.all([
         supabase.from('distribusi_air').select('id, tanggal, kota, liter, penerima_manfaat, no_kendaraan').order('tanggal', { ascending: false }),
         supabase.from('barang_keluar').select('id, tanggal, jenis_barang, jumlah, satuan, tujuan_penerima, status').order('tanggal', { ascending: false }),
+        supabase.from('layanan_kesehatan').select('id, tanggal, jenis_layanan, kota, jumlah_penerima'),
+        supabase.from('kegiatan_bersih').select('id, tanggal, jenis_kegiatan, kota, jumlah_terlayani, satuan'),
       ])
       const err = (a.error || b.error) ? 'Sebagian data (air/barang) gagal dimuat: ' + (a.error?.message || b.error?.message) : ''
-      setExtra({ air: a.data || [], barang: b.data || [], loaded: true, loading: false, error: err })
+      setExtra({ air: a.data || [], barang: b.data || [], kes: k.data || [], bersih: c.data || [], loaded: true, loading: false, error: err })
     })()
   }, [aktifWilayah])
 
@@ -226,11 +228,13 @@ export default function InfografisPage() {
                       const detail = (show.wilayah_detail || []).filter(d => (d.region_id ? d.region_id === aktifWilayah : cocokkanWilayah(d.nama) === aktifWilayah))
                       const air = extra.air.filter(r => cocokkanWilayah(r.kota) === aktifWilayah)
                       const barang = extra.barang.filter(r => cocokkanWilayah(r.tujuan_penerima) === aktifWilayah)
+                      const kesehatan = extra.kes.filter(r => cocokkanWilayah(r.kota) === aktifWilayah)
+                      const bersih = extra.bersih.filter(r => cocokkanWilayah(r.kota) === aktifWilayah)
                       return (
                         <PanelWilayah
                           nama={w?.nama || aktifWilayah}
                           status={show.wilayah_status[aktifWilayah] || 'aman'}
-                          detail={detail} air={air} barang={barang}
+                          detail={detail} air={air} barang={barang} kesehatan={kesehatan} bersih={bersih}
                           loadingData={!extra.loaded} errorData={extra.error}
                           onClose={() => setAktifWilayah(null)}
                         />

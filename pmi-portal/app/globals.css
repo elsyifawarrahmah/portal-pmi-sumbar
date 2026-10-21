@@ -103,3 +103,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
 .leaflet-tooltip.peta-label{background:transparent;border:none;box-shadow:none;padding:0;font-family:'Archivo Narrow','Inter',sans-serif;font-weight:700;font-size:11.5px;color:#1B1715;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap;pointer-events:none;}
 .leaflet-tooltip.peta-label::before{display:none;}
 @media (max-width:768px){ .peta-sumbar{height:360px;} }
+
+/* Judul kelompok menu di sidebar */
+.nav-section{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#fff;opacity:.55;font-weight:700;padding:14px 12px 4px;}
+@media (max-width:768px){ .nav-section{display:none;} }
