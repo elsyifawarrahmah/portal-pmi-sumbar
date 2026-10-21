@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import Sidebar from './Sidebar'
 
-export default function DataPage({ table, title, desc, fields, columns, filterField }) {
+export default function DataPage({ table, title, desc, fields, columns, filterField, fixed, defaults }) {
   const supabase = createClient()
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,7 +28,9 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', userData.user.id).single()
       if (profile) setMyRole(profile.role)
     }
-    const { data, error } = await supabase.from(table).select('*, profiles(nama_lengkap)').order('created_at', { ascending: false })
+    let q = supabase.from(table).select('*, profiles(nama_lengkap)')
+    if (fixed) Object.entries(fixed).forEach(([k, v]) => { q = q.eq(k, v) })
+    const { data, error } = await q.order('created_at', { ascending: false })
     if (!error) setRows(data || [])
     setLoading(false)
   }
@@ -36,7 +38,7 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
   function nilaiAwal() {
     const f = {}
     fields.forEach(x => { if (x.type === 'select' && x.opts?.length) f[x.k] = x.opts[0] })
-    return f
+    return { ...f, ...(defaults || {}), ...(fixed || {}) }
   }
   function openAdd() { setEditing(null); setForm(nilaiAwal()); setError(''); setShowModal(true) }
   function openEdit(row) { setEditing(row); setForm(row); setError(''); setShowModal(true) }
@@ -56,10 +58,12 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
 
   async function handleSave() {
     for (const f of fields) {
+      if (fixed && f.k in fixed) continue
       if (f.req && !form[f.k]) { setError('Lengkapi field wajib: ' + f.label); return }
     }
     const payload = {}
     fields.forEach(f => { payload[f.k] = (form[f.k] === '' || form[f.k] === undefined) ? null : form[f.k] })
+    if (fixed) Object.assign(payload, fixed)
 
     if (editing) {
       const { error } = await supabase.from(table).update(payload).eq('id', editing.id)
@@ -162,7 +166,7 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
             </div>
             <div style={{padding:'20px 22px'}}>
               {error && <div className="error-box">{error}</div>}
-              {fields.map(f => (
+              {fields.filter(f => !(fixed && f.k in fixed)).map(f => (
                 <div className="field" key={f.k}>
                   <label>{f.label}</label>
                                 {f.type === 'select' ? (

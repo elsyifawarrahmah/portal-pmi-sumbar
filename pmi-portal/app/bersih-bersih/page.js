@@ -2,18 +2,18 @@
 import DataPage from '@/components/DataPage'
 import { NAMA_WILAYAH } from '@/lib/wilayah'
 
-const JENIS = ['Aksi Bersih', 'Promosi Kebersihan', 'Pembersihan Pasca Bencana', 'Penghijauan']
+const JENIS = ['Aksi Bersih', 'Sanitasi', 'Promosi Kebersihan', 'Sumur Bor / Pipanisasi', 'Pembersihan Pasca Bencana']
 
 export default function BersihBersihPage() {
   return (
     <DataPage
       table="kegiatan_bersih"
-      title="Bersih-Bersih"
-      desc="Semua kegiatan kebersihan PMI: aksi bersih, promosi kebersihan, pembersihan pasca bencana, dan lainnya. (Distribusi air bersih ada di menu tersendiri.)"
+      title="Semua Bersih-Bersih"
+      desc="Rekap seluruh kegiatan kebersihan PMI (air, sanitasi, dan kebersihan): Aksi Bersih, Sanitasi, Promosi Kebersihan, Sumur Bor / Pipanisasi, dll. Distribusi Air Bersih ada di menu Air Bersih."
       filterField={{ k: 'jenis_kegiatan', label: 'Semua kegiatan', opts: JENIS }}
       fields={[
         { k:'tanggal', label:'Tanggal', type:'date', req:true },
-        { k:'jenis_kegiatan', label:'Jenis Kegiatan', type:'text', req:true, ph:'Aksi Bersih, Promosi Kebersihan, dll', saran:JENIS },
+        { k:'jenis_kegiatan', label:'Jenis Kegiatan', type:'text', req:true, ph:'Aksi Bersih, Sanitasi, dll', saran:JENIS },
         { k:'kota', label:'Kota/Kabupaten', type:'text', req:true, saran:NAMA_WILAYAH },
         { k:'lokasi', label:'Lokasi', type:'text', ph:'Nama nagari, sekolah, pasar, dll' },
         { k:'jumlah_relawan', label:'Jumlah Relawan', type:'number' },
