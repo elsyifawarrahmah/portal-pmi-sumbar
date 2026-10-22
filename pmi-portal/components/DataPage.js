@@ -138,7 +138,7 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
                   <tr key={r.id}>
                     {columns.map(c => (
                       <td key={c.k} className={c.num ? 'num' : ''}>
-                        {c.file ? (r[c.k] ? <a href={r[c.k]} target="_blank" rel="noreferrer" style={{color:'var(--pmi-red)',fontWeight:600}}>📎 Lihat</a> : '-') :
+                        {c.render ? c.render(r) : c.file ? (r[c.k] ? <a href={r[c.k]} target="_blank" rel="noreferrer" style={{color:'var(--pmi-red)',fontWeight:600}}>📎 Lihat</a> : '-') :
                          c.num ? Number(r[c.k]||0).toLocaleString('id-ID') : (r[c.k] ?? '-')}
                       </td>
                     ))}

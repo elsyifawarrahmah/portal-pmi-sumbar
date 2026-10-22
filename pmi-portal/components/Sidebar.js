@@ -15,6 +15,7 @@ const LINKS = [
   { href: '/produksi', label: 'Unit & Perlengkapan' },
   { section: 'Layanan PMI' },
   { href: '/layanan-kesehatan', label: 'Layanan Kesehatan' },
+  { href: '/alat-kesehatan', label: 'Alat Kesehatan' },
   { href: '/barang-keluar', label: 'Distribusi Barang Bantuan' },
   { section: 'Bersih-Bersih' },
   { href: '/bersih-bersih', label: 'Semua Bersih-Bersih' },

@@ -13,7 +13,7 @@ export default function BackupPage() {
     try {
       const XLSX = await import('xlsx')
 
-      const [logistik, air, donasi, barangKeluar, pengadaan, users, layananKes, kegBersih, unitPerl] = await Promise.all([
+      const [logistik, air, donasi, barangKeluar, pengadaan, users, layananKes, kegBersih, unitPerl, alatKes] = await Promise.all([
         supabase.from('logistik').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
         supabase.from('distribusi_air').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
         supabase.from('donasi').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
@@ -23,6 +23,7 @@ export default function BackupPage() {
         supabase.from('layanan_kesehatan').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
         supabase.from('kegiatan_bersih').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
         supabase.from('unit_perlengkapan').select('*, profiles:petugas_id(nama_lengkap)').order('created_at', { ascending: false }),
+        supabase.from('alat_kesehatan').select('*, profiles:petugas_id(nama_lengkap)').order('created_at', { ascending: false }),
       ])
 
       const wb = XLSX.utils.book_new()
@@ -69,6 +70,10 @@ export default function BackupPage() {
         'Kondisi': r.kondisi || '', 'Lokasi Simpan': r.lokasi_simpan || '', 'Keterangan': r.keterangan || '',
         'Petugas': r.profiles?.nama_lengkap || '', 'Link Foto': r.file_bukti_url || '',
       }))), 'Produksi Unit')
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((alatKes.data||[]).map(r => ({
+        'Jenis': r.jenis, 'Jumlah': r.jumlah, 'Merk': r.merk || '', 'Satuan': r.satuan || '',
+        'E.D (Kedaluwarsa)': r.tanggal_ed || '', 'Petugas': r.profiles?.nama_lengkap || '',
+      }))), 'Alat Kesehatan')
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((users.data||[]).map(r => ({
         'Nama': r.nama_lengkap, 'Email': r.email, 'Role': r.role,
         'Terakhir Aktif': r.last_seen ? new Date(r.last_seen).toLocaleString('id-ID') : '',
@@ -96,7 +101,7 @@ export default function BackupPage() {
             <div style={{fontSize:40, marginBottom:10}}>🗄️</div>
             <h3 style={{margin:'0 0 8px'}}>Backup Lengkap Portal Logistik</h3>
             <p style={{color:'var(--ink-soft)', fontSize:13.5, maxWidth:440, margin:'0 auto 20px'}}>
-              File Excel ini berisi 9 sheet: Logistik Masuk, Distribusi Air, Donasi Barang, Distribusi Barang Bantuan, Pengadaan, Layanan Kesehatan, Bersih-Bersih, Produksi Unit, dan Data User.
+              File Excel ini berisi 10 sheet: Logistik Masuk, Distribusi Air, Donasi Barang, Distribusi Barang Bantuan, Pengadaan, Layanan Kesehatan, Bersih-Bersih, Produksi Unit, Alat Kesehatan, dan Data User.
               Simpan file ini secara berkala di komputer/Google Drive kantor sebagai cadangan.
             </p>
             <button className="btn btn-primary" onClick={buatBackup} disabled={loading} style={{padding:'12px 28px', fontSize:14}}>
