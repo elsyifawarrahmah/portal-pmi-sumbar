@@ -116,7 +116,7 @@ export default function InfografisPage() {
         )}
 
         {/* ===== POSTER ===== */}
-        <div style={{ background: '#fff', borderRadius: 22, padding: 0, overflow: 'hidden', boxShadow: '0 16px 50px rgba(32,28,26,.12)', border: '3px solid var(--pmi-red)' }}>
+        <div style={{ background: '#fff', borderRadius: 22, padding: 0, overflow: 'clip', boxShadow: '0 16px 50px rgba(32,28,26,.12)', border: '3px solid var(--pmi-red)' }}>
 
           {/* HERO */}
           <div style={{ background: 'linear-gradient(135deg, var(--pmi-red) 0%, var(--pmi-red-dark) 100%)', padding: '32px 32px 26px', color: '#fff', position: 'relative' }}>
@@ -156,8 +156,8 @@ export default function InfografisPage() {
             {/* PETA */}
             <div className="ribbon" style={{ marginTop: 22 }}><Ikon nama="peta" size={18} /> PETA WILAYAH TERDAMPAK</div>
             <div className="poster-section" style={bagianKecil}>
-              <div style={{ display: 'grid', gridTemplateColumns: editing ? '1fr' : '1fr 1.1fr', gap: 20, alignItems: 'center' }}>
-                <div>
+              <div style={{ display: 'grid', gridTemplateColumns: editing ? '1fr' : '1fr 1.1fr', gap: 20, alignItems: 'start' }}>
+                <div style={editing ? undefined : { position: 'sticky', top: 96, alignSelf: 'start' }}>
                   <PetaSumbar statusWilayah={show.wilayah_status} aktif={aktifWilayah} onSelect={(id) => setAktifWilayah(id)} />
                   <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
                     {Object.entries(STATUS_WARNA).map(([k, v]) => (
@@ -184,7 +184,7 @@ export default function InfografisPage() {
                       return (
                         <PanelWilayah
                           nama={w?.nama || aktifWilayah}
-                          status={show.wilayah_status[aktifWilayah] || 'aman'}
+                          status={show.wilayah_status[aktifWilayah]} isAdmin={isAdmin}
                           detail={detail} air={air} barang={barang} kesehatan={kesehatan} bersih={bersih}
                           loadingData={!extra.loaded} errorData={extra.error}
                           onClose={() => setAktifWilayah(null)}
