@@ -100,14 +100,14 @@ export default function StokPage() {
 
         {menipis.length > 0 && (
           <div style={{background:'#FBE7E7',color:'#B3261E',padding:'12px 16px',borderRadius:10,fontSize:13,fontWeight:600,marginBottom:18}}>
-            ⚠ {menipis.length} jenis barang stoknya sudah menipis: {menipis.map(m=>m.nama).join(', ')}
+            Perhatian: {menipis.length} jenis barang stoknya sudah menipis: {menipis.map(m=>m.nama).join(', ')}
           </div>
         )}
 
         <div className="panel">
           <div className="panel-head">
             <input placeholder="Cari barang..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
-            <button className="btn btn-ghost" onClick={exportCSV}>⬇ Export Laporan (CSV)</button>
+            <button className="btn btn-ghost" onClick={exportCSV}>Export Laporan (CSV)</button>
           </div>
           <div style={{overflowX:'auto'}}>
             <table>

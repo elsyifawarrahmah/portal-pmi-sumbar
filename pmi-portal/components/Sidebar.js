@@ -4,30 +4,48 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
+// Ikon garis (gaya seragam, warna mengikuti teks)
+const IKON = {
+  home: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
+  peta: <><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></>,
+  paket: <><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></>,
+  alat: <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>,
+  hati: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>,
+  tetes: <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>,
+  atur: <><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
+}
+function Ikon({ nama }) {
+  return (
+    <svg className="nav-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {IKON[nama]}
+    </svg>
+  )
+}
+
 // Menu: tautan langsung + kelompok yang bisa dibuka/ditutup (hanya kelompok aktif yang terbuka otomatis)
 const MENU = [
-  { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/infografis', label: 'Infografis Bencana', icon: '🗺️' },
-  { grup: 'Logistik', icon: '📦', items: [
+  { href: '/dashboard', label: 'Dashboard', icon: 'home' },
+  { href: '/infografis', label: 'Infografis Bencana', icon: 'peta' },
+  { grup: 'Logistik', icon: 'paket', items: [
     { href: '/logistik', label: 'Logistik Barang Masuk' },
     { href: '/pengadaan', label: 'Pengadaan Barang' },
     { href: '/stok', label: 'Stok Barang' },
     { href: '/donasi', label: 'Donasi Barang' },
   ] },
-  { href: '/produksi', label: 'Produksi', icon: '🧰' },
-  { grup: 'Layanan PMI', icon: '🩺', items: [
+  { href: '/produksi', label: 'Produksi', icon: 'alat' },
+  { grup: 'Layanan PMI', icon: 'hati', items: [
     { href: '/layanan-kesehatan', label: 'Layanan Kesehatan' },
     { href: '/alat-kesehatan', label: 'Alat Kesehatan' },
     { href: '/barang-keluar', label: 'Distribusi Barang Bantuan' },
   ] },
-  { grup: 'Bersih-Bersih', icon: '🧹', items: [
+  { grup: 'Bersih-Bersih', icon: 'tetes', items: [
     { href: '/bersih-bersih', label: 'Semua Bersih-Bersih' },
     { href: '/bersih/aksi-bersih', label: 'Aksi Bersih' },
     { href: '/air', label: 'Air Bersih (Distribusi)' },
     { href: '/bersih/sanitasi', label: 'Sanitasi (MCK)' },
     { href: '/bersih/promosi-kebersihan', label: 'Promosi Kebersihan' },
   ] },
-  { grup: 'Pengaturan', icon: '⚙️', items: [
+  { grup: 'Pengaturan', icon: 'atur', items: [
     { href: '/data-user', label: 'Data User' },
     { href: '/backup', label: 'Backup Data' },
   ] },
@@ -99,7 +117,7 @@ export default function Sidebar() {
         {MENU.map(m => m.grup ? (
           <div key={m.grup} className={`nav-group${buka.includes(m.grup) ? ' open' : ''}${m.grup === grupAktif ? ' has-active' : ''}`}>
             <button type="button" className="nav-group-btn" onClick={() => toggleGrup(m.grup)} aria-expanded={buka.includes(m.grup)}>
-              <span className="nav-ico">{m.icon}</span><span>{m.grup}</span><span className="chev">▸</span>
+              <Ikon nama={m.icon} /><span>{m.grup}</span><span className="chev">▸</span>
             </button>
             <div className="nav-sub">
               {m.items.map(i => (
@@ -109,7 +127,7 @@ export default function Sidebar() {
           </div>
         ) : (
           <Link key={m.href} href={m.href} className={path === m.href ? 'active' : ''}>
-            <span className="nav-ico">{m.icon}</span>{m.label}
+            <Ikon nama={m.icon} />{m.label}
           </Link>
         ))}
       </div>

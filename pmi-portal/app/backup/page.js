@@ -98,14 +98,14 @@ export default function BackupPage() {
 
         <div className="panel">
           <div className="panel-body" style={{padding:28, textAlign:'center'}}>
-            <div style={{fontSize:40, marginBottom:10}}>🗄️</div>
+            
             <h3 style={{margin:'0 0 8px'}}>Backup Lengkap Portal Logistik</h3>
             <p style={{color:'var(--ink-soft)', fontSize:13.5, maxWidth:440, margin:'0 auto 20px'}}>
               File Excel ini berisi 10 sheet: Logistik Masuk, Distribusi Air, Donasi Barang, Distribusi Barang Bantuan, Pengadaan, Layanan Kesehatan, Bersih-Bersih, Produksi Unit, Alat Kesehatan, dan Data User.
               Simpan file ini secara berkala di komputer/Google Drive kantor sebagai cadangan.
             </p>
             <button className="btn btn-primary" onClick={buatBackup} disabled={loading} style={{padding:'12px 28px', fontSize:14}}>
-              {loading ? 'Menyiapkan file...' : '⬇ Buat & Unduh Backup Sekarang'}
+              {loading ? 'Menyiapkan file...' : 'Buat & Unduh Backup Sekarang'}
             </button>
             {lastBackup && (
               <div style={{marginTop:14, fontSize:12.5, color:'var(--stock)'}}>
@@ -116,7 +116,7 @@ export default function BackupPage() {
         </div>
 
         <div style={{fontSize:12, color:'var(--ink-soft)', background:'var(--cream)', padding:12, borderRadius:10}}>
-          💡 <strong>Saran:</strong> jadwalkan 1 orang untuk klik tombol ini setiap minggu, lalu simpan filenya di Google Drive bersama PMI Sumbar. Ini jaga-jaga kalau ada masalah teknis di server.
+          <strong>Saran:</strong> jadwalkan 1 orang untuk klik tombol ini setiap minggu, lalu simpan filenya di Google Drive bersama PMI Sumbar. Ini jaga-jaga kalau ada masalah teknis di server.
         </div>
       </div>
     </div>

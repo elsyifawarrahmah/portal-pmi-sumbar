@@ -59,7 +59,7 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
 
       {/* Rincian dari Infografis */}
       <div style={kotak}>
-        <div style={judul}>📍 Rincian Wilayah</div>
+        <div style={judul}>Rincian Wilayah</div>
         {detail.length === 0 ? (
           <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada rincian untuk wilayah ini di infografis.</div>
         ) : detail.map((w, i) => (
@@ -74,7 +74,7 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
 
       {/* Distribusi air */}
       <div style={kotak}>
-        <div style={judul}>💧 Distribusi Air Bersih</div>
+        <div style={judul}>Distribusi Air Bersih</div>
         {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
           air.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada distribusi air tercatat untuk wilayah ini.</div> : (
             <>
@@ -97,7 +97,7 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
 
       {/* Barang keluar */}
       <div style={kotak}>
-        <div style={judul}>📦 Bantuan Barang Dikirim</div>
+        <div style={judul}>Bantuan Barang Dikirim</div>
         {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
           barang.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada barang keluar tercatat untuk wilayah ini.</div> : (
             <>
@@ -112,14 +112,14 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
                   ))}
                 </div>
               )}
-              {diajukan > 0 && <div style={{ fontSize: 12, color: 'var(--gold)', marginTop: 8 }}>⏳ {diajukan} pengajuan masih menunggu persetujuan.</div>}
+              {diajukan > 0 && <div style={{ fontSize: 12, color: 'var(--gold)', marginTop: 8 }}>Menunggu: {diajukan} pengajuan masih menunggu persetujuan.</div>}
             </>
           )}
       </div>
 
       {/* Layanan kesehatan */}
       <div style={kotak}>
-        <div style={judul}>🩺 Layanan Kesehatan</div>
+        <div style={judul}>Layanan Kesehatan</div>
         {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
           grupKesehatan.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada layanan kesehatan tercatat untuk wilayah ini.</div> : (
             grupKesehatan.map(g => (
@@ -133,7 +133,7 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
 
       {/* Bersih-bersih */}
       <div style={kotak}>
-        <div style={judul}>🧹 Bersih-Bersih</div>
+        <div style={judul}>Bersih-Bersih</div>
         {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
           grupBersih.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada kegiatan bersih-bersih tercatat untuk wilayah ini.</div> : (
             grupBersih.map(g => (

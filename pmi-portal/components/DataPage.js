@@ -110,7 +110,7 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
         </div>
         {!isAdmin && (
           <div style={{background:'var(--gold-bg)',color:'var(--gold)',padding:'10px 14px',borderRadius:10,fontSize:12.5,fontWeight:600,marginBottom:18}}>
-            👁 Akun kamu hanya bisa melihat data. Untuk menambah atau mengubah, hubungi admin (Kabid).
+            Akun kamu hanya bisa melihat data. Untuk menambah atau mengubah, hubungi admin (Kabid).
           </div>
         )}
         <div className="panel">
@@ -124,7 +124,7 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
                 </select>
               )}
             </div>
-            <button className="btn btn-ghost" onClick={exportCSV}>⬇ Export Excel (CSV)</button>
+            <button className="btn btn-ghost" onClick={exportCSV}>Export Excel (CSV)</button>
           </div>
           <div style={{overflowX:'auto'}}>
             <table>
@@ -138,7 +138,7 @@ export default function DataPage({ table, title, desc, fields, columns, filterFi
                   <tr key={r.id}>
                     {columns.map(c => (
                       <td key={c.k} className={c.num ? 'num' : ''}>
-                        {c.render ? c.render(r) : c.file ? (r[c.k] ? <a href={r[c.k]} target="_blank" rel="noreferrer" style={{color:'var(--pmi-red)',fontWeight:600}}>📎 Lihat</a> : '-') :
+                        {c.render ? c.render(r) : c.file ? (r[c.k] ? <a href={r[c.k]} target="_blank" rel="noreferrer" style={{color:'var(--pmi-red)',fontWeight:600}}>Lihat berkas</a> : '-') :
                          c.num ? Number(r[c.k]||0).toLocaleString('id-ID') : (r[c.k] ?? '-')}
                       </td>
                     ))}

@@ -205,7 +205,7 @@ export default function InfografisPage() {
                     ))}
                   </div>
                   {!editing && (
-                    <div style={{textAlign:'center',fontSize:12,color:'var(--ink-soft)',marginTop:10}}>👆 Klik wilayah di peta untuk melihat rinciannya.</div>
+                    <div style={{textAlign:'center',fontSize:12,color:'var(--ink-soft)',marginTop:10}}>Klik wilayah di peta untuk melihat rinciannya.</div>
                   )}
                   {editing && (
                     <div style={{marginTop:14,borderTop:'1px solid var(--line)',paddingTop:12,textAlign:'center'}}>

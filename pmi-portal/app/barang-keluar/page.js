@@ -88,7 +88,7 @@ export default function BarangKeluarPage() {
         <div className="panel">
           <div className="panel-head">
             <input placeholder="Cari barang / tujuan..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
-            <button className="btn btn-ghost" onClick={exportCSV}>⬇ Export Laporan (CSV)</button>
+            <button className="btn btn-ghost" onClick={exportCSV}>Export Laporan (CSV)</button>
           </div>
           <div style={{overflowX:'auto'}}>
             <table>
@@ -103,7 +103,7 @@ export default function BarangKeluarPage() {
                     <td className="num">{Number(r.jumlah).toLocaleString('id-ID')} {r.satuan}</td>
                     <td>{r.tujuan_penerima}</td>
                     <td className="mono">{r.nomor_surat_permintaan || '-'}</td>
-                    <td>{r.file_bukti_url ? <a href={r.file_bukti_url} target="_blank" rel="noreferrer" style={{color:'var(--pmi-red)',fontWeight:600}}>📎 Lihat</a> : '-'}</td>
+                    <td>{r.file_bukti_url ? <a href={r.file_bukti_url} target="_blank" rel="noreferrer" style={{color:'var(--pmi-red)',fontWeight:600}}>Lihat berkas</a> : '-'}</td>
                     <td><span className="tag" style={statusStyle(r.status)}>{r.status}</span></td>
                     <td>{r.petugas?.nama_lengkap || '-'}</td>
                     {isAdmin && (

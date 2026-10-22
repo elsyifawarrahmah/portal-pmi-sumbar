@@ -145,7 +145,7 @@ export default function PengadaanPage() {
         <div className="panel">
           <div className="panel-head">
             <input placeholder="Cari barang..." value={search} onChange={e=>setSearch(e.target.value)} style={{maxWidth:260}} />
-            <button className="btn btn-ghost" onClick={exportCSV}>⬇ Export Laporan (CSV)</button>
+            <button className="btn btn-ghost" onClick={exportCSV}>Export Laporan (CSV)</button>
           </div>
           <div style={{overflowX:'auto'}}>
             <table>
