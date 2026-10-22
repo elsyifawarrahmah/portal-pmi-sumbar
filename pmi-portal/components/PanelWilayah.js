@@ -1,8 +1,8 @@
 'use client'
 // Panel rincian satu wilayah: muncul saat wilayah di peta Infografis diklik.
-import { STATUS_WARNA } from '@/components/PetaSumbar'
+import Ikon from '@/components/Ikon'
+import { STATUS_LABEL } from '@/lib/infografis'
 
-const STATUS_LABEL = { parah: 'Parah', sedang: 'Sedang', ringan: 'Ringan', aman: 'Aman' }
 const fmt = n => Number(n || 0).toLocaleString('id-ID')
 function tgl(v) {
   if (!v) return '-'
@@ -10,10 +10,10 @@ function tgl(v) {
   return isNaN(d) ? v : d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-const kotak = { background: 'var(--cream)', border: '1px solid var(--line)', borderRadius: 12, padding: '12px 14px', marginTop: 10 }
-const judul = { fontSize: 12.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '.03em', marginBottom: 8 }
+const HEADER = { parah: '#B3122A', sedang: '#C77D0A', ringan: '#2D6A4F', aman: '#5B6B73' }
+const TEKS_STATUS = { parah: 'Dampak Parah', sedang: 'Dampak Sedang', ringan: 'Dampak Ringan', aman: 'Aman / Tidak Terdampak' }
 
-// Kelompokkan baris per jenis (dan satuan): kembalikan [{ nama, kegiatan, jumlah, satuan }]
+// Kelompokkan baris per jenis (dan satuan)
 function kelompok(rows, kunci, jumlahKey, satuanKey, satuanTetap) {
   const m = {}
   rows.forEach(r => {
@@ -26,8 +26,30 @@ function kelompok(rows, kunci, jumlahKey, satuanKey, satuanTetap) {
   return Object.values(m)
 }
 
+function Kartu({ ikon, warna, nilai, label, sub }) {
+  return (
+    <div className="pw-kartu">
+      <div className="pw-ikon" style={{ background: warna + '1F', color: warna }}><Ikon nama={ikon} size={22} /></div>
+      <div className="pw-isi">
+        <div className="pw-angka">{nilai}</div>
+        <div className="pw-label">{label}</div>
+        {sub ? <div className="pw-sub">{sub}</div> : null}
+      </div>
+    </div>
+  )
+}
+
+function Bagian({ ikon, judul, kosong, children, ada }) {
+  return (
+    <div className="pw-bagian">
+      <div className="pw-bagian-judul"><Ikon nama={ikon} size={16} /> {judul}</div>
+      {ada ? children : <div className="pw-kosong">{kosong}</div>}
+    </div>
+  )
+}
+
 export default function PanelWilayah({ nama, status, detail, air, barang, kesehatan = [], bersih = [], loadingData, errorData, onClose }) {
-  const warna = STATUS_WARNA[status] || STATUS_WARNA.aman
+  const warna = HEADER[status] || HEADER.aman
   const totalLiter = air.reduce((s, r) => s + Number(r.liter || 0), 0)
   const airTerbaru = [...air].sort((a, b) => String(b.tanggal).localeCompare(String(a.tanggal)))
 
@@ -38,115 +60,73 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
     const key = `${b.jenis_barang}||${b.satuan}`
     ringkasBarang[key] = (ringkasBarang[key] || 0) + Number(b.jumlah || 0)
   })
-  const grupKesehatan = kelompok(kesehatan, 'jenis_layanan', 'jumlah_penerima', null, 'orang')
+  const daftarBarang = Object.entries(ringkasBarang).map(([k, v]) => { const [n, satuan] = k.split('||'); return { nama: n, satuan, jumlah: v } })
+  const grupKes = kelompok(kesehatan, 'jenis_layanan', 'jumlah_penerima', null, 'orang')
   const grupBersih = kelompok(bersih, 'jenis_kegiatan', 'jumlah_terlayani', 'satuan')
-  const daftarBarang = Object.entries(ringkasBarang).map(([k, v]) => { const [nama, satuan] = k.split('||'); return { nama, satuan, jumlah: v } })
+  const totalPenerimaKes = kesehatan.reduce((s, r) => s + Number(r.jumlah_penerima || 0), 0)
+
+  const muat = loadingData
+  const biru = '#1F6FB2', emas = '#B7791F', merah = '#C8102E', hijau = '#2D6A4F'
 
   return (
-    <div style={{ background: '#fff', border: `2px solid ${warna}`, borderRadius: 14, padding: '14px 16px', marginBottom: 14, boxShadow: 'var(--shadow)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+    <div className="pw">
+      <div className="pw-header" style={{ background: `linear-gradient(135deg, ${warna}, ${warna}CC)` }}>
         <div>
-          <div style={{ fontSize: 11, color: 'var(--ink-soft)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>Rincian Wilayah</div>
-          <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{nama}</div>
+          <div className="pw-kecil">Rincian Wilayah</div>
+          <div className="pw-nama">{nama}</div>
+          <span className="pw-status"><Ikon nama={status === 'aman' ? 'centang' : 'alert'} size={14} /> {TEKS_STATUS[status] || TEKS_STATUS.aman}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="tag" style={{ background: warna + '22', color: status === 'aman' ? '#2D6A4F' : warna, border: `1px solid ${warna}66` }}>
-            Dampak: {STATUS_LABEL[status] || 'Aman'}
-          </span>
-          <button onClick={onClose} aria-label="Tutup rincian" style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>✕</button>
-        </div>
+        <button type="button" className="pw-tutup" onClick={onClose} aria-label="Tutup rincian"><Ikon nama="tutup" size={18} /></button>
       </div>
 
-      {/* Rincian dari Infografis */}
-      <div style={kotak}>
-        <div style={judul}>Rincian Wilayah</div>
-        {detail.length === 0 ? (
-          <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada rincian untuk wilayah ini di infografis.</div>
-        ) : detail.map((w, i) => (
-          <div key={i} style={{ fontSize: 13.5, marginBottom: i < detail.length - 1 ? 6 : 0 }}>
-            <strong>{w.nama}</strong>
-            <span style={{ color: 'var(--ink-soft)' }}> · {w.kecamatan || '-'} Kec · {w.jumlah_sub || '-'} {w.label_sub || ''}</span>
+      <div className="pw-badan">
+        {detail.length > 0 && (
+          <div className="pw-info">
+            {detail.map((w, i) => (
+              <span key={i} className="pw-pil"><Ikon nama="pin" size={13} /> {w.kecamatan || '-'} kecamatan · {w.jumlah_sub || '-'} {w.label_sub || ''}</span>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
 
-      {errorData && <div className="error-box" style={{ marginTop: 10 }}>{errorData}</div>}
+        {errorData && <div className="error-box" style={{ marginBottom: 10 }}>{errorData}</div>}
 
-      {/* Distribusi air */}
-      <div style={kotak}>
-        <div style={judul}>Distribusi Air Bersih</div>
-        {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
-          air.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada distribusi air tercatat untuk wilayah ini.</div> : (
-            <>
-              <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 8 }}>
-                <div><div style={{ fontSize: 22, fontWeight: 700, color: '#1F6FB2', fontFamily: "'Space Grotesk',sans-serif" }}>{fmt(totalLiter)}</div><div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>liter terdistribusi</div></div>
-                <div><div style={{ fontSize: 22, fontWeight: 700, fontFamily: "'Space Grotesk',sans-serif" }}>{fmt(air.length)}</div><div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>kali pengiriman</div></div>
-                <div><div style={{ fontSize: 14, fontWeight: 700, marginTop: 5 }}>{tgl(airTerbaru[0].tanggal)}</div><div style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>terakhir</div></div>
-              </div>
-              {airTerbaru.slice(0, 5).map((r, i) => (
-                <div key={r.id || i} style={{ fontSize: 12.5, padding: '5px 0', borderTop: '1px dashed var(--line)' }}>
-                  {tgl(r.tanggal)} · <strong>{fmt(r.liter)} L</strong>
-                  {r.penerima_manfaat ? ` · ${r.penerima_manfaat}` : ''}
-                  {r.no_kendaraan ? <span style={{ color: 'var(--ink-soft)' }}> · {r.no_kendaraan}</span> : null}
-                </div>
-              ))}
-              {air.length > 5 && <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 4 }}>+ {air.length - 5} pengiriman lainnya (lihat menu Distribusi Air Bersih)</div>}
-            </>
+        <div className="pw-kartu-grid">
+          <Kartu ikon="tetes" warna={biru} nilai={muat ? '…' : fmt(totalLiter)} label="Liter air bersih" sub={muat ? '' : `${fmt(air.length)} pengiriman`} />
+          <Kartu ikon="paket" warna={emas} nilai={muat ? '…' : fmt(daftarBarang.length)} label="Jenis bantuan barang" sub={muat ? '' : `${fmt(disetujui.length)} pengiriman disetujui`} />
+          <Kartu ikon="hati" warna={merah} nilai={muat ? '…' : fmt(totalPenerimaKes)} label="Penerima layanan kesehatan" sub={muat ? '' : `${fmt(kesehatan.length)} kegiatan`} />
+          <Kartu ikon="bersih" warna={hijau} nilai={muat ? '…' : fmt(bersih.length)} label="Kegiatan bersih-bersih" sub={muat ? '' : `${fmt(grupBersih.length)} jenis kegiatan`} />
+        </div>
+
+        <Bagian ikon="tetes" judul="Distribusi Air Bersih" ada={!muat && air.length > 0} kosong={muat ? 'Memuat...' : 'Belum ada distribusi air tercatat.'}>
+          {airTerbaru.slice(0, 4).map((r, i) => (
+            <div key={r.id || i} className="pw-baris">
+              <span>{tgl(r.tanggal)}</span>
+              <span><strong>{fmt(r.liter)} L</strong>{r.penerima_manfaat ? ` · ${r.penerima_manfaat}` : ''}</span>
+            </div>
+          ))}
+          {air.length > 4 && <div className="pw-lebih">+ {air.length - 4} pengiriman lain di menu Air Bersih</div>}
+        </Bagian>
+
+        <Bagian ikon="paket" judul="Bantuan Barang Dikirim" ada={!muat && barang.length > 0} kosong={muat ? 'Memuat...' : 'Belum ada barang keluar tercatat.'}>
+          {daftarBarang.length === 0 ? <div className="pw-kosong">Belum ada pengiriman yang disetujui.</div> : (
+            <div className="pw-chips">{daftarBarang.map(b => <span key={b.nama + b.satuan} className="pw-chip"><strong>{b.nama}</strong> {fmt(b.jumlah)} {b.satuan}</span>)}</div>
           )}
-      </div>
+          {diajukan > 0 && <div className="pw-lebih"><Ikon nama="jam" size={13} /> {diajukan} pengajuan menunggu persetujuan</div>}
+        </Bagian>
 
-      {/* Barang keluar */}
-      <div style={kotak}>
-        <div style={judul}>Bantuan Barang Dikirim</div>
-        {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
-          barang.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada barang keluar tercatat untuk wilayah ini.</div> : (
-            <>
-              {daftarBarang.length === 0 ? (
-                <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada pengiriman yang disetujui.</div>
-              ) : (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {daftarBarang.map(b => (
-                    <span key={b.nama + b.satuan} className="chip" style={{ background: '#fff', border: '1px solid var(--line)' }}>
-                      <strong>{b.nama}</strong>&nbsp;{fmt(b.jumlah)} {b.satuan}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {diajukan > 0 && <div style={{ fontSize: 12, color: 'var(--gold)', marginTop: 8 }}>Menunggu: {diajukan} pengajuan masih menunggu persetujuan.</div>}
-            </>
-          )}
-      </div>
+        <Bagian ikon="hati" judul="Layanan Kesehatan" ada={!muat && grupKes.length > 0} kosong={muat ? 'Memuat...' : 'Belum ada layanan kesehatan tercatat.'}>
+          {grupKes.map(g => (
+            <div key={g.nama} className="pw-baris"><span><strong>{g.nama}</strong></span><span>{fmt(g.kegiatan)} kegiatan · {fmt(g.jumlah)} {g.satuan}</span></div>
+          ))}
+        </Bagian>
 
-      {/* Layanan kesehatan */}
-      <div style={kotak}>
-        <div style={judul}>Layanan Kesehatan</div>
-        {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
-          grupKesehatan.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada layanan kesehatan tercatat untuk wilayah ini.</div> : (
-            grupKesehatan.map(g => (
-              <div key={g.nama} style={{ fontSize: 13, padding: '4px 0' }}>
-                <strong>{g.nama}</strong>
-                <span style={{ color: 'var(--ink-soft)' }}> · {fmt(g.kegiatan)} kegiatan · {fmt(g.jumlah)} {g.satuan}</span>
-              </div>
-            ))
-          )}
-      </div>
+        <Bagian ikon="bersih" judul="Bersih-Bersih" ada={!muat && grupBersih.length > 0} kosong={muat ? 'Memuat...' : 'Belum ada kegiatan bersih-bersih tercatat.'}>
+          {grupBersih.map(g => (
+            <div key={g.nama + g.satuan} className="pw-baris"><span><strong>{g.nama}</strong></span><span>{fmt(g.kegiatan)} kegiatan · {fmt(g.jumlah)} {g.satuan}</span></div>
+          ))}
+        </Bagian>
 
-      {/* Bersih-bersih */}
-      <div style={kotak}>
-        <div style={judul}>Bersih-Bersih</div>
-        {loadingData ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Memuat...</div> :
-          grupBersih.length === 0 ? <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>Belum ada kegiatan bersih-bersih tercatat untuk wilayah ini.</div> : (
-            grupBersih.map(g => (
-              <div key={g.nama + g.satuan} style={{ fontSize: 13, padding: '4px 0' }}>
-                <strong>{g.nama}</strong>
-                <span style={{ color: 'var(--ink-soft)' }}> · {fmt(g.kegiatan)} kegiatan · {fmt(g.jumlah)} {g.satuan}</span>
-              </div>
-            ))
-          )}
-      </div>
-
-      <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 10 }}>
-        Data air, barang, kesehatan, dan bersih-bersih dicocokkan dari nama kota/tujuan yang diketik petugas.
+        <div className="pw-catatan">Data air, barang, kesehatan, dan bersih-bersih dicocokkan dari nama kota/tujuan yang diketik petugas.</div>
       </div>
     </div>
   )
