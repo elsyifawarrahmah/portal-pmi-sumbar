@@ -6,9 +6,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 import Sidebar from '@/components/Sidebar'
 import Ikon from '@/components/Ikon'
-import { statusMasaBakti } from '@/lib/organisasi'
 
-const WARNA = { hijau: { background: 'var(--stock-bg)', color: 'var(--stock)' }, kuning: { background: 'var(--gold-bg)', color: 'var(--gold)' }, merah: { background: '#FBE7E7', color: '#B3261E' } }
+// Sorotan baris seperti di Excel: merah muda = Pengajuan, kuning = MUSKAB atau tanggal SK belum ada
+function sorotan(r) {
+  const ket = String(r.keterangan || '').toLowerCase()
+  if (ket.includes('pengajuan')) return 'sorot-pink'
+  if (ket.includes('muskab') || !String(r.tgl_sk || '').trim()) return 'sorot-kuning'
+  return ''
+}
 
 export default function OrganisasiPage() {
   const supabase = createClient()
@@ -49,8 +54,6 @@ export default function OrganisasiPage() {
   }
 
   const filtered = rows.filter(r => [r.nama, r.ketua, r.masa_bakti, r.keterangan].join(' ').toLowerCase().includes(search.toLowerCase()))
-  const berakhir = rows.filter(r => statusMasaBakti(r.masa_bakti)?.tone === 'kuning' || statusMasaBakti(r.masa_bakti)?.tone === 'merah').length
-  const lengkap = rows.filter(r => jumlahPengurus[r.id] > 0).length
 
   function bukaUbah(r, e) {
     e.stopPropagation()
@@ -95,12 +98,6 @@ export default function OrganisasiPage() {
 
         {loadError && <div className="error-box" style={{ marginBottom: 18 }}>{loadError}</div>}
 
-        <div className="org-ringkas">
-          <div className="org-stat"><div className="org-stat-angka">{rows.length ? rows.length - 1 : 0}</div><div>Kab/Kota</div></div>
-          <div className="org-stat"><div className="org-stat-angka">{lengkap}<span> / {rows.length}</span></div><div>Kepengurusan tercatat</div></div>
-          <div className="org-stat" style={berakhir ? { borderColor: '#F1D79A', background: '#FFF9EA' } : undefined}><div className="org-stat-angka">{berakhir}</div><div>Masa bakti berakhir / segera berakhir</div></div>
-        </div>
-
         <div className="panel">
           <div className="panel-head" style={{ flexWrap: 'wrap', gap: 8 }}>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1 }}>
@@ -111,34 +108,39 @@ export default function OrganisasiPage() {
               <button className="btn btn-ghost" onClick={exportKetua}>Export Daftar Ketua (CSV)</button>
             </div>
           </div>
-          <div className="org-judul-tabel">Daftar Nama Ketua PMI Se-Provinsi Sumatera Barat</div>
-          <div style={{ overflowX: 'auto' }}>
-            <table>
-              <thead><tr><th>No</th><th>Kab/Kota</th><th>Ketua</th><th>Masa Bakti</th><th>Tgl SK</th><th>Ket</th><th>Status</th><th></th></tr></thead>
+
+          <div className="excel-wrap">
+            <table className="tabel-excel">
+              <thead>
+                <tr className="excel-judul"><th colSpan={6}>Daftar Nama Ketua PMI</th>{isAdmin && <th className="aksi" />}</tr>
+                <tr className="excel-judul"><th colSpan={6}>Se- Provinsi Sumatera Barat</th>{isAdmin && <th className="aksi" />}</tr>
+                <tr className="excel-kepala">
+                  <th style={{ width: 52 }}>No</th><th>Kab/Kota</th><th>Ketua</th><th style={{ width: 130 }}>Masa Bakti</th><th style={{ width: 120 }}>Tgl SK</th><th style={{ width: 130 }}>Ket</th>
+                  {isAdmin && <th className="aksi" />}
+                </tr>
+              </thead>
               <tbody>
-                {loading ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30 }}>Memuat...</td></tr> :
-                filtered.length === 0 ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: 30, color: 'var(--ink-soft)' }}>Tidak ada data.</td></tr> :
-                filtered.map(r => {
-                  const st = statusMasaBakti(r.masa_bakti)
-                  return (
-                    <tr key={r.id} className="org-baris-klik" onClick={() => router.push('/organisasi/' + r.slug)}>
-                      <td data-label="No">{r.urut}</td>
-                      <td data-label="Kab/Kota"><Link href={'/organisasi/' + r.slug} onClick={e => e.stopPropagation()} className="org-link">{r.nama}</Link>
-                        {!jumlahPengurus[r.id] && <div className="org-kecil">Kepengurusan belum diisi</div>}</td>
-                      <td data-label="Ketua"><strong>{r.ketua || '-'}</strong></td>
-                      <td data-label="Masa Bakti">{r.masa_bakti || '-'}</td>
-                      <td data-label="Tgl SK">{r.tgl_sk || '-'}</td>
-                      <td data-label="Ket">{r.keterangan ? <span className="tag" style={WARNA.kuning}>{r.keterangan}</span> : '-'}</td>
-                      <td data-label="Status">{st ? <span className="tag" style={WARNA[st.tone]}>{st.label}</span> : '-'}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}>
-                        {isAdmin && <button className="btn btn-ghost" style={{ padding: '4px 10px', marginRight: 6, fontSize: 12 }} onClick={e => bukaUbah(r, e)}>Ubah</button>}
-                        <Ikon nama="kanan" size={16} style={{ color: 'var(--ink-soft)', verticalAlign: 'middle' }} />
-                      </td>
-                    </tr>
-                  )
-                })}
+                {loading ? <tr><td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: 30 }}>Memuat...</td></tr> :
+                filtered.length === 0 ? <tr><td colSpan={isAdmin ? 7 : 6} style={{ textAlign: 'center', padding: 30, color: 'var(--ink-soft)' }}>Tidak ada data.</td></tr> :
+                filtered.map(r => (
+                  <tr key={r.id} className={'excel-baris ' + sorotan(r)} onClick={() => router.push('/organisasi/' + r.slug)} title="Klik untuk melihat kepengurusan dan markas">
+                    <td className="c">{r.urut}</td>
+                    <td><Link href={'/organisasi/' + r.slug} onClick={e => e.stopPropagation()} className="excel-link">{r.nama}</Link>
+                      {!jumlahPengurus[r.id] && <div className="org-kecil">kepengurusan belum diisi</div>}</td>
+                    <td>{r.ketua || ''}</td>
+                    <td className="c">{r.masa_bakti || ''}</td>
+                    <td className="c">{r.tgl_sk || ''}</td>
+                    <td className="c">{r.keterangan || ''}</td>
+                    {isAdmin && <td className="aksi"><button type="button" className="excel-ubah" onClick={e => bukaUbah(r, e)} aria-label={'Ubah ' + r.nama} title="Ubah"><Ikon nama="edit" size={16} /></button></td>}
+                  </tr>
+                ))}
               </tbody>
             </table>
+          </div>
+          <div className="excel-legenda">
+            <span><i className="kotak kuning" /> MUSKAB / tanggal SK belum ada</span>
+            <span><i className="kotak pink" /> Pengajuan</span>
+            <span>Klik nama Kab/Kota untuk melihat kepengurusan dan markasnya.</span>
           </div>
         </div>
         {!isAdmin && <div className="org-kecil" style={{ marginTop: 4 }}>Akun kamu hanya bisa melihat data. Untuk mengubah, hubungi admin.</div>}

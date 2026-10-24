@@ -93,7 +93,7 @@ pmikotapadang@yahoo.com', NULL),
   (4, 'bukittinggi', 'kota', 'Kota Bukittinggi', 'bukittinggi', 'FAUZAN HAFIZ, SE., S.H., M.B.A., M.A.L.S., M.M', '2026 - 2031', NULL, NULL, '01.04.10', 'Jl. Dr. A. Riva''i No. 17 A, Kayu Kubu, Guguk Panjang, Bukittinggi', 'Markas: (0752) 627899 | UDD: (0752) 21605 | +62 813-6439-0253', 'pmi.kotabukittinggi@gmail.com
 kota_bukittinggi@pmi.or.id', NULL),
   (5, 'payakumbuh', 'kota', 'Kota Payakumbuh', 'payakumbuh', 'drg. Muhammad Fadlan, PGDip.Impl., MSc. RAAD', '2023 - 2028', '9 Mei', NULL, '01.04.11', 'Jln. Ade Irma Suryani No. 18, Kec. Payakumbuh Utara, 26213', '0812 6348 5626', 'kota_payakumbuh@pmi.or.id', NULL),
-  (6, 'sawahlunto', 'kota', 'Kota Sawahlunto', 'sawahlunto', 'Andrio An, SH, MH, C.Med', '2025 - 2030', NULL, 'Pengajuan', '01.04.05', 'Jl. Soekarno Hatta No. 2 Sawahlunto', '0754-61827', NULL, NULL),
+  (6, 'sawahlunto', 'kota', 'Kota Sawahlunto', 'sawahlunto', 'Andrio AN, SH.,C.Med', '2025 - 2030', NULL, 'Pengajuan', '01.04.05', 'Jl. Soekarno Hatta No. 2 Sawahlunto', '0754-61827', NULL, NULL),
   (7, 'padang_panjang', 'kota', 'Kota Padang Panjang', 'padang_panjang', 'Maria Feronika Hendri Arnis, ST', '2024 - 2029', '29 Januari', NULL, '01.04.08', 'Jl. K.H. Dahlan No. 5 Padang Panjang', '0752-82234', NULL, NULL),
   (8, 'pesisir_selatan', 'kabupaten', 'Kab. Pesisir Selatan', 'pesisir_selatan', 'Dr.H.Risnaldi Ibrahim, S.Ag, M.M, M.H', '2025 - 2030', '8 Des', NULL, '01.04.07', 'Jl. Koto Tinggi Painan', '0756-21628', NULL, NULL),
   (9, 'padang_pariaman', 'kabupaten', 'Kab. Padang Pariaman', 'padang_pariaman', 'Rahmat Hidayat, SE, MM', '2025 - 2030', '27 Maret', NULL, '01.04.02', 'Jl. M. Syafe''i No. 10 Pariaman', '081374154490', 'kab_padangpariaman@pmi.or.id', NULL),
@@ -511,3 +511,7 @@ insert into relawan (organisasi_id)
 select o.id from pmi_organisasi o
 where o.jenis <> 'provinsi'
 on conflict (organisasi_id) do nothing;
+
+-- ===== Koreksi kecil: tulisan nama ketua Kota Sawahlunto di daftar ketua disamakan dengan Excel =====
+-- (hanya mengubah bila masih berisi nilai awal; tidak menimpa suntingan petugas)
+update pmi_organisasi set ketua = 'Andrio AN, SH.,C.Med' where slug = 'sawahlunto' and ketua = 'Andrio An, SH, MH, C.Med';
