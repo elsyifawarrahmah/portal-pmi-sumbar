@@ -20,6 +20,7 @@ export default function OrganisasiPage() {
   const router = useRouter()
   const [rows, setRows] = useState([])
   const [jumlahPengurus, setJumlahPengurus] = useState({})
+  const [unitProv, setUnitProv] = useState({ pusdiklat: 0, klinik: 0 })
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
@@ -49,6 +50,10 @@ export default function OrganisasiPage() {
       const hitung = {}
       ;(p || []).forEach(x => { hitung[x.organisasi_id] = (hitung[x.organisasi_id] || 0) + 1 })
       setJumlahPengurus(hitung)
+      const { data: u } = await supabase.from('pmi_unit').select('jenis')
+      const hu = { pusdiklat: 0, klinik: 0 }
+      ;(u || []).forEach(x => { if (hu[x.jenis] !== undefined) hu[x.jenis] += 1 })
+      setUnitProv(hu)
     }
     setLoading(false)
   }
@@ -93,7 +98,7 @@ export default function OrganisasiPage() {
       <Sidebar />
       <div className="main">
         <div className="topbar">
-          <div><h1>Organisasi PMI</h1><p className="desc">Daftar Ketua PMI se-Provinsi Sumatera Barat. Klik salah satu baris untuk melihat kepengurusan dan markasnya.</p></div>
+          <div><h1>Organisasi PMI</h1><p className="desc">Daftar Ketua PMI se-Provinsi Sumatera Barat, lalu kepengurusan dan markas tiap kab/kota di bagian bawah.</p></div>
         </div>
 
         {loadError && <div className="error-box" style={{ marginBottom: 18 }}>{loadError}</div>}
@@ -143,6 +148,61 @@ export default function OrganisasiPage() {
             <span>Klik nama Kab/Kota untuk melihat kepengurusan dan markasnya.</span>
           </div>
         </div>
+        {!loading && rows.length > 0 && (() => {
+          const kabKota = rows.filter(r => r.jenis !== 'provinsi')
+          const prov = rows.find(r => r.jenis === 'provinsi')
+          const nPeng = prov ? (jumlahPengurus[prov.id] || 0) : 0
+          return (
+            <>
+              <section className="org-bagian">
+                <h2 className="org-bagian-judul"><span className="org-no">1</span> Kepengurusan dan Markas Kab/Kota</h2>
+                <p className="org-bagian-bantu">Pilih kab/kota, lalu pilih <strong>Kepengurusan</strong> (daftar nama pengurus) atau <strong>Markas</strong> (alamat dan kontak).</p>
+                <div className="org-kabgrid">
+                  {kabKota.map(r => (
+                    <div key={r.id} className="org-kabkartu">
+                      <div className="org-kabnama">{r.nama}</div>
+                      <div className="org-kabaksi">
+                        <Link href={'/organisasi/' + r.slug + '#kepengurusan'} className={'org-btn' + (jumlahPengurus[r.id] ? '' : ' kosong')} title={jumlahPengurus[r.id] ? '' : 'Kepengurusan belum diisi'}>
+                          <Ikon nama="orang2" size={16} /> Kepengurusan
+                        </Link>
+                        <Link href={'/organisasi/' + r.slug + '#markas'} className="org-btn"><Ikon nama="gedung" size={16} /> Markas</Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {prov && (
+                <section className="org-bagian">
+                  <h2 className="org-bagian-judul"><span className="org-no">2</span> PMI Provinsi Sumatera Barat</h2>
+                  <div className="org-provgrid">
+                    <Link href="/organisasi/provinsi#kepengurusan" className="org-provkartu">
+                      <span className="org-provikon"><Ikon nama="orang2" size={24} /></span>
+                      <span className="org-provjudul">Kepengurusan</span>
+                      <span className="org-provsub">Ketua: {prov.ketua || '-'}<br />Masa bakti {prov.masa_bakti || '-'}{nPeng ? ' · ' + nPeng + ' nama' : ''}</span>
+                    </Link>
+                    <Link href="/organisasi/provinsi#markas" className="org-provkartu">
+                      <span className="org-provikon"><Ikon nama="gedung" size={24} /></span>
+                      <span className="org-provjudul">Markas</span>
+                      <span className="org-provsub">{prov.markas_alamat || 'Belum diisi'}</span>
+                    </Link>
+                    <Link href="/organisasi/provinsi#pusdiklat" className="org-provkartu">
+                      <span className="org-provikon"><Ikon nama="buku" size={24} /></span>
+                      <span className="org-provjudul">Pusdiklat</span>
+                      <span className="org-provsub">{unitProv.pusdiklat ? unitProv.pusdiklat + ' data tercatat' : 'Belum diisi'}</span>
+                    </Link>
+                    <Link href="/organisasi/provinsi#klinik" className="org-provkartu">
+                      <span className="org-provikon"><Ikon nama="faskes" size={24} /></span>
+                      <span className="org-provjudul">Klinik</span>
+                      <span className="org-provsub">{unitProv.klinik ? unitProv.klinik + ' data tercatat' : 'Belum diisi'}</span>
+                    </Link>
+                  </div>
+                </section>
+              )}
+            </>
+          )
+        })()}
+
         {!isAdmin && <div className="org-kecil" style={{ marginTop: 4 }}>Akun kamu hanya bisa melihat data. Untuk mengubah, hubungi admin.</div>}
       </div>
 

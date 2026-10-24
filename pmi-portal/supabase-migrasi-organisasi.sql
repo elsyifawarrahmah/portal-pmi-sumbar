@@ -144,7 +144,7 @@ join (values
   ('agam', 'Pengurus', 'Anggota', 'Darmalion, S.Sos', 23),
   ('dharmasraya', 'Pelindung', 'Pelindung', 'Bupati Kabupaten Dharmasraya', 1),
   ('dharmasraya', 'Dewan Kehormatan', 'Ketua', 'Jemy Hendra, S.T', 2),
-  ('dharmasraya', 'Dewan Kehormatan', 'Anggota', 'Madison, S.Sos, M.Si', 3),
+  ('dharmasraya', 'Dewan Kehormatan', 'Anggota', 'Medison, S.Sos, M.Si', 3),
   ('dharmasraya', 'Dewan Kehormatan', 'Anggota', 'Marlon Martua Dt Rangkayo Mulie', 4),
   ('dharmasraya', 'Dewan Kehormatan', 'Anggota', 'Amrizal Dt Rajo Medan', 5),
   ('dharmasraya', 'Dewan Kehormatan', 'Anggota', 'Zulfikar Atut Datuak Penghulu Bosao', 6),
@@ -515,3 +515,8 @@ on conflict (organisasi_id) do nothing;
 -- ===== Koreksi kecil: tulisan nama ketua Kota Sawahlunto di daftar ketua disamakan dengan Excel =====
 -- (hanya mengubah bila masih berisi nilai awal; tidak menimpa suntingan petugas)
 update pmi_organisasi set ketua = 'Andrio AN, SH.,C.Med' where slug = 'sawahlunto' and ketua = 'Andrio An, SH, MH, C.Med';
+
+-- ===== Koreksi ejaan: Dewan Kehormatan Dharmasraya "Medison" (bukan "Madison") =====
+update pmi_pengurus p set nama = 'Medison, S.Sos, M.Si'
+from pmi_organisasi o
+where p.organisasi_id = o.id and o.slug = 'dharmasraya' and p.nama = 'Madison, S.Sos, M.Si';

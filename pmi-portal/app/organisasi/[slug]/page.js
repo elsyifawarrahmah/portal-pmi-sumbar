@@ -24,7 +24,7 @@ export default function OrganisasiDetailPage() {
   const [loading, setLoading] = useState(true)
   const [pesan, setPesan] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
-  const [tab, setTab] = useState('kepengurusan')
+  const [tabPilih, setTab] = useState('kepengurusan')
   const [editPengurus, setEditPengurus] = useState(false)
   const [markasModal, setMarkasModal] = useState(false)
   const [markasForm, setMarkasForm] = useState({})
@@ -34,6 +34,16 @@ export default function OrganisasiDetailPage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { load() }, [slug])
+
+  // Tautan langsung ke tab, mis. /organisasi/agam#markas
+  const TAB_ID = ['kepengurusan', 'markas', 'pusdiklat', 'klinik']
+  useEffect(() => {
+    const dariHash = () => { const h = (window.location.hash || '').replace('#', ''); if (TAB_ID.includes(h)) setTab(h) }
+    dariHash()
+    window.addEventListener('hashchange', dariHash)
+    return () => window.removeEventListener('hashchange', dariHash)
+  }, [slug])
+  const pilihTab = id => { setTab(id); try { window.history.replaceState(null, '', '#' + id) } catch (e) {} }
 
   async function load() {
     setLoading(true)
@@ -69,6 +79,8 @@ export default function OrganisasiDetailPage() {
   )
 
   const provinsi = org.jenis === 'provinsi'
+  // Pusdiklat & Klinik hanya ada untuk Provinsi; untuk kab/kota kembali ke Kepengurusan
+  const tab = (provinsi || ['kepengurusan', 'markas'].includes(tabPilih)) ? tabPilih : 'kepengurusan'
   const tabs = [['kepengurusan', 'Kepengurusan', 'orang2'], ['markas', 'Markas', 'gedung'], ...(provinsi ? [['pusdiklat', 'Pusdiklat', 'buku'], ['klinik', 'Klinik', 'faskes']] : [])]
   const st = statusMasaBakti(org.masa_bakti)
   const per = k => pengurus.filter(x => x.kelompok === k)
@@ -114,7 +126,7 @@ export default function OrganisasiDetailPage() {
     load()
   }
 
-  const jenisUnit = tab === 'pusdiklat' || tab === 'klinik' ? tab : null
+  const jenisUnit = provinsi && (tab === 'pusdiklat' || tab === 'klinik') ? tab : null
 
   return (
     <div className="app">
@@ -147,7 +159,7 @@ export default function OrganisasiDetailPage() {
 
         <div className="org-tabs" role="tablist">
           {tabs.map(([id, label, ikon]) => (
-            <button key={id} type="button" role="tab" aria-selected={tab === id} className={'org-tab' + (tab === id ? ' on' : '')} onClick={() => setTab(id)}>
+            <button key={id} type="button" role="tab" aria-selected={tab === id} className={'org-tab' + (tab === id ? ' on' : '')} onClick={() => pilihTab(id)}>
               <Ikon nama={ikon} size={17} /> {label}
             </button>
           ))}

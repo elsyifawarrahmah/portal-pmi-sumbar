@@ -297,3 +297,24 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
 .excel-legenda .kotak{display:inline-block;width:14px;height:14px;border:1px solid #9AA3AE;margin-right:6px;vertical-align:-2px;}
 .excel-legenda .kuning{background:#FFF2CC;}
 .excel-legenda .pink{background:#FF80D5;}
+
+/* ===== Bagian 1 & 2 di halaman Organisasi ===== */
+.org-bagian{margin-top:26px;}
+.org-bagian-judul{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-size:20px;margin:0 0 6px;}
+.org-no{width:30px;height:30px;border-radius:50%;background:var(--pmi-red-dark);color:#fff;font-size:15px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.org-bagian-bantu{font-size:14.5px;color:var(--ink-soft);margin:0 0 12px;}
+.org-kabgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;}
+.org-kabkartu{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+.org-kabnama{font-weight:700;font-size:15.5px;}
+.org-kabaksi{display:flex;gap:6px;flex-wrap:wrap;}
+.org-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--pmi-red-dark);color:var(--pmi-red-dark);background:#fff;border-radius:10px;padding:7px 12px;font-size:13.5px;font-weight:700;text-decoration:none;}
+.org-btn:hover{background:var(--pmi-red-dark);color:#fff;}
+.org-btn.kosong{border-color:var(--line);color:var(--ink-soft);}
+.org-btn.kosong:hover{background:var(--cream);color:var(--ink);}
+.org-provgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.org-provkartu{display:flex;flex-direction:column;gap:6px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;text-decoration:none;color:var(--ink);box-shadow:var(--shadow);}
+.org-provkartu:hover{border-color:var(--pmi-red-dark);background:#FFFAF8;}
+.org-provikon{width:44px;height:44px;border-radius:12px;background:#8C0F241A;color:var(--pmi-red-dark);display:flex;align-items:center;justify-content:center;}
+.org-provjudul{font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;}
+.org-provsub{font-size:14px;color:var(--ink-soft);line-height:1.4;}
+@media (max-width:768px){ .org-kabgrid{grid-template-columns:1fr;} }
