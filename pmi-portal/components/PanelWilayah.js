@@ -49,7 +49,7 @@ function Bagian({ ikon, judul, kosong, children, ada }) {
   )
 }
 
-export default function PanelWilayah({ nama, status, detail, air, barang, kesehatan = [], bersih = [], loadingData, errorData, isAdmin, onClose }) {
+export default function PanelWilayah({ nama, status, detail, air, barang, kesehatan = [], bersih = [], organisasi, loadingData, errorData, isAdmin, onClose }) {
   const diatur = !!status
   const st = status || 'aman'
   const warna = diatur ? (HEADER[st] || HEADER.aman) : '#6B7780'
@@ -96,6 +96,17 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
       </div>
 
       <div className="pw-badan">
+        {organisasi && (
+          <a className="pw-org" href={'/organisasi/' + organisasi.slug}>
+            <span className="pw-ikon" style={{ background: '#8C0F241F', color: '#8C0F24' }}><Ikon nama="gedung" size={22} /></span>
+            <span className="pw-org-isi">
+              <span className="pw-org-judul">Ketua PMI: {organisasi.ketua || '-'}</span>
+              <span className="pw-org-sub">Masa bakti {organisasi.masa_bakti || '-'}{organisasi.markas_telp ? ' · Markas: ' + organisasi.markas_telp : ''}</span>
+            </span>
+            <Ikon nama="kanan" size={18} />
+          </a>
+        )}
+
         {adaRincian && (
           <div className="pw-info">
             {detail.map((w, i) => (
