@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import SQL_ORGANISASI from '@/lib/sqlOrganisasi'
+import { muatDataAwal } from '@/lib/muatDataAwal'
+import { pecahBaris } from '@/lib/organisasi'
 import { createClient } from '@/lib/supabase-browser'
 import Sidebar from '@/components/Sidebar'
 import Ikon from '@/components/Ikon'
@@ -21,6 +24,12 @@ export default function OrganisasiPage() {
   const [rows, setRows] = useState([])
   const [jumlahPengurus, setJumlahPengurus] = useState({})
   const [unitProv, setUnitProv] = useState({ pusdiklat: 0, klinik: 0 })
+  const [tabelBelumAda, setTabelBelumAda] = useState(false)
+  const [memuatAwal, setMemuatAwal] = useState(false)
+  const [progres, setProgres] = useState('')
+  const [hasilMuat, setHasilMuat] = useState(null)
+  const [tersalin, setTersalin] = useState(false)
+  const [cariMarkas, setCariMarkas] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
@@ -42,10 +51,11 @@ export default function OrganisasiPage() {
     const { data, error: err } = await supabase.from('pmi_organisasi').select('*').order('urut')
     if (err) {
       const belumAda = err.code === '42P01' || err.code === 'PGRST205' || /pmi_organisasi/.test(err.message || '')
-      setLoadError(belumAda ? 'Tabel organisasi belum dibuat. Jalankan file supabase-migrasi-organisasi.sql di Supabase (SQL Editor) satu kali.' : 'Gagal memuat data: ' + err.message)
+      setTabelBelumAda(belumAda)
+      setLoadError(belumAda ? 'Tabel organisasi belum dibuat.' : 'Gagal memuat data: ' + err.message)
       setRows([])
     } else {
-      setLoadError(''); setRows(data || [])
+      setLoadError(''); setTabelBelumAda(false); setRows(data || [])
       const { data: p } = await supabase.from('pmi_pengurus').select('organisasi_id')
       const hitung = {}
       ;(p || []).forEach(x => { hitung[x.organisasi_id] = (hitung[x.organisasi_id] || 0) + 1 })
@@ -59,6 +69,29 @@ export default function OrganisasiPage() {
   }
 
   const filtered = rows.filter(r => [r.nama, r.ketua, r.masa_bakti, r.keterangan].join(' ').toLowerCase().includes(search.toLowerCase()))
+
+  async function salinSql() {
+    let berhasil = false
+    try { await window.navigator.clipboard.writeText(SQL_ORGANISASI); berhasil = true } catch (e) { /* coba cara cadangan */ }
+    if (!berhasil) {
+      try {
+        const ta = document.createElement('textarea'); ta.value = SQL_ORGANISASI; ta.style.position = 'fixed'; ta.style.opacity = '0'
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove()
+      } catch (e) { /* biarkan: pengguna masih bisa memilih manual lewat "Lihat isi SQL" */ }
+    }
+    setTersalin(true); setTimeout(() => setTersalin(false), 3000)
+  }
+  async function jalankanMuatAwal() {
+    setMemuatAwal(true); setError(''); setHasilMuat(null)
+    try {
+      const hasil = await muatDataAwal(supabase, setProgres)
+      setHasilMuat(hasil)
+      await load()
+    } catch (e) {
+      setHasilMuat({ gagal: e.message || String(e) })
+    }
+    setMemuatAwal(false); setProgres('')
+  }
 
   function bukaUbah(r, e) {
     e.stopPropagation()
@@ -86,6 +119,10 @@ export default function OrganisasiPage() {
   }
   const exportKetua = () => unduh('daftar-ketua-pmi-sumbar', ['No', 'Kab/Kota', 'Ketua', 'Masa Bakti', 'Tgl SK', 'Ket'],
     filtered.map((r, i) => [r.urut, r.nama, r.ketua, r.masa_bakti, r.tgl_sk, r.keterangan]))
+  const markasUrut = [...rows].sort((a, b) => String(a.kode_wilayah || '').localeCompare(String(b.kode_wilayah || '')))
+  const markasTampil = markasUrut.filter(r => [r.nama, r.markas_alamat, r.markas_telp, r.markas_email].join(' ').toLowerCase().includes(cariMarkas.toLowerCase()))
+  const exportMarkas = () => unduh('alamat-markas-pmi-sumbar', ['No', 'Kode', 'Kab/Kota', 'Alamat Markas', 'Telp/Fax/HP', 'E-mail'],
+    markasTampil.map(r => [markasUrut.indexOf(r) + 1, r.kode_wilayah, r.nama, r.markas_alamat, r.markas_telp, pecahBaris(r.markas_email).join('; ')]))
   async function exportSemua() {
     const { data } = await supabase.from('pmi_pengurus').select('kelompok, jabatan, nama, urut, pmi_organisasi(nama, urut, masa_bakti)')
     const baris = (data || []).sort((a, b) => (a.pmi_organisasi?.urut - b.pmi_organisasi?.urut) || (a.urut - b.urut))
@@ -101,7 +138,40 @@ export default function OrganisasiPage() {
           <div><h1>Organisasi PMI</h1><p className="desc">Daftar Ketua PMI se-Provinsi Sumatera Barat, lalu kepengurusan dan markas tiap kab/kota di bagian bawah.</p></div>
         </div>
 
-        {loadError && <div className="error-box" style={{ marginBottom: 18 }}>{loadError}</div>}
+        {hasilMuat && !hasilMuat.gagal && (
+          <div className="org-sukses">Data awal berhasil dimuat: {hasilMuat.organisasi} wilayah, {hasilMuat.pengurus} nama kepengurusan, {hasilMuat.relawan} baris relawan.</div>
+        )}
+        {hasilMuat?.gagal && <div className="error-box" style={{ marginBottom: 18 }}>Gagal memuat data awal: {hasilMuat.gagal}</div>}
+
+        {tabelBelumAda ? (
+          <div className="org-setup">
+            <div className="org-setup-judul">Langkah 1 dari 2 — Buat tabel di Supabase (cukup sekali)</div>
+            <ol className="org-setup-langkah">
+              <li>Klik tombol <strong>Salin SQL</strong> di bawah.</li>
+              <li>Buka <strong>Supabase</strong> lalu <strong>SQL Editor</strong>. Klik tombol <strong>+</strong> (query baru), tempel, lalu klik <strong>Run</strong>. Hasil yang benar: tulisan <em>Success</em>.</li>
+              <li>Kembali ke halaman ini dan tekan <strong>Ctrl+Shift+R</strong>. Tombol <strong>Muat Data Awal</strong> akan muncul.</li>
+            </ol>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" onClick={salinSql}><Ikon nama="simpan" size={16} /> Salin SQL</button>
+              {tersalin && <span className="org-sukses-kecil">Tersalin. Sekarang tempel di Supabase.</span>}
+            </div>
+            <details className="org-setup-detail"><summary>Lihat isi SQL</summary><pre>{SQL_ORGANISASI}</pre></details>
+          </div>
+        ) : loadError && <div className="error-box" style={{ marginBottom: 18 }}>{loadError}</div>}
+
+        {!loading && !loadError && rows.length === 0 && (
+          <div className="org-setup">
+            <div className="org-setup-judul">Langkah 2 dari 2 — Muat data awal</div>
+            <p style={{ margin: '0 0 12px', fontSize: 15 }}>Tabel sudah siap tetapi masih kosong. Klik tombol di bawah untuk memasukkan daftar ketua PMI, alamat markas, dan kepengurusan kab/kota. Cukup sekali dan aman diulang.</p>
+            {isAdmin ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button className="btn btn-primary" onClick={jalankanMuatAwal} disabled={memuatAwal}>{memuatAwal ? 'Memuat...' : 'Muat Data Awal'}</button>
+                {progres && <span className="org-kecil">{progres}</span>}
+              </div>
+            ) : <p className="org-kecil">Hubungi admin untuk memuat data awal.</p>}
+          </div>
+        )}
+
 
         <div className="panel">
           <div className="panel-head" style={{ flexWrap: 'wrap', gap: 8 }}>
@@ -157,19 +227,28 @@ export default function OrganisasiPage() {
               <section className="org-bagian">
                 <h2 className="org-bagian-judul"><span className="org-no">1</span> Kepengurusan dan Markas Kab/Kota</h2>
                 <p className="org-bagian-bantu">Pilih kab/kota, lalu pilih <strong>Kepengurusan</strong> (daftar nama pengurus) atau <strong>Markas</strong> (alamat dan kontak).</p>
-                <div className="org-kabgrid">
-                  {kabKota.map(r => (
-                    <div key={r.id} className="org-kabkartu">
-                      <div className="org-kabnama">{r.nama}</div>
-                      <div className="org-kabaksi">
-                        <Link href={'/organisasi/' + r.slug + '#kepengurusan'} className={'org-btn' + (jumlahPengurus[r.id] ? '' : ' kosong')} title={jumlahPengurus[r.id] ? '' : 'Kepengurusan belum diisi'}>
-                          <Ikon nama="orang2" size={16} /> Kepengurusan
-                        </Link>
-                        <Link href={'/organisasi/' + r.slug + '#markas'} className="org-btn"><Ikon nama="gedung" size={16} /> Markas</Link>
-                      </div>
+                {[['Kota', kabKota.filter(r => r.jenis === 'kota')], ['Kabupaten', kabKota.filter(r => r.jenis === 'kabupaten')]].map(([judul, daftar]) => (
+                  <div key={judul} className="org-kelompok">
+                    <div className="org-kelompok-judul">{judul}<span>{daftar.length}</span></div>
+                    <div className="org-kabgrid">
+                      {daftar.map(r => {
+                        const n = jumlahPengurus[r.id] || 0
+                        return (
+                          <div key={r.id} className={'org-kab' + (n ? '' : ' kosong')}>
+                            <div className="org-kab-info">
+                              <div className="org-kab-nama">{r.nama}</div>
+                              <div className="org-kab-meta">{n ? `${n} nama · masa bakti ${r.masa_bakti || '-'}` : 'Kepengurusan belum diisi'}</div>
+                            </div>
+                            <div className="org-kab-aksi">
+                              <Link href={'/organisasi/' + r.slug + '#kepengurusan'} className={'org-aksi' + (n ? '' : ' kosong')}><Ikon nama="orang2" size={15} /> Kepengurusan</Link>
+                              <Link href={'/organisasi/' + r.slug + '#markas'} className="org-aksi"><Ikon nama="gedung" size={15} /> Markas</Link>
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </section>
 
               {prov && (
@@ -202,6 +281,45 @@ export default function OrganisasiPage() {
             </>
           )
         })()}
+
+        {!loading && rows.length > 0 && (
+          <section className="org-bagian">
+            <h2 className="org-bagian-judul"><span className="org-no">3</span> Alamat Markas PMI se-Sumatera Barat</h2>
+            <p className="org-bagian-bantu">Alamat, telepon, dan e-mail markas tiap kab/kota. Klik e-mail untuk menulis surat; klik nama untuk membuka rinciannya.</p>
+            <div className="panel">
+              <div className="panel-head" style={{ flexWrap: 'wrap', gap: 8 }}>
+                <input placeholder="Cari kab/kota, alamat, atau e-mail..." value={cariMarkas} onChange={e => setCariMarkas(e.target.value)} style={{ maxWidth: 320 }} />
+                <button className="btn btn-ghost" onClick={exportMarkas}>Export Alamat Markas (CSV)</button>
+              </div>
+              <div className="excel-wrap">
+                <table className="tabel-markas">
+                  <thead>
+                    <tr className="markas-judul"><th colSpan={8}>PMI PROVINSI SUMATERA BARAT</th></tr>
+                    <tr className="markas-kepala">
+                      <th style={{ width: 44 }}>No</th><th style={{ width: 52 }}>Kode Reg.</th><th style={{ width: 52 }}>Kode Prov.</th><th style={{ width: 62 }}>Kode Kab/Kota</th>
+                      <th>Kab/Kota</th><th>Alamat Markas</th><th>Telp/Fax/HP</th><th>e-mail</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {markasTampil.length === 0 ? <tr><td colSpan={8} style={{ textAlign: 'center', padding: 24 }}>Tidak ada data.</td></tr> : markasTampil.map(r => {
+                      const kode = String(r.kode_wilayah || '').split('.')
+                      return (
+                        <tr key={r.id}>
+                          <td className="c">{markasUrut.indexOf(r) + 1}</td>
+                          <td className="c">{kode[0] || ''}</td><td className="c">{kode[1] || ''}</td><td className="c">{kode[2] || ''}</td>
+                          <td><Link href={'/organisasi/' + r.slug + '#markas'} className="excel-link">{r.nama}</Link></td>
+                          <td>{r.markas_alamat || ''}</td>
+                          <td className="c">{String(r.markas_telp || '').split(' | ').map((t, i) => <div key={i}>{t}</div>)}</td>
+                          <td className="c">{pecahBaris(r.markas_email).map(m => <div key={m}><a className="mail-link" href={'mailto:' + m}>{m}</a></div>)}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        )}
 
         {!isAdmin && <div className="org-kecil" style={{ marginTop: 4 }}>Akun kamu hanya bisa melihat data. Untuk mengubah, hubungi admin.</div>}
       </div>
