@@ -62,6 +62,7 @@ export default function Sidebar() {
   const router = useRouter()
   const supabase = createClient()
   const [collapsed, setCollapsed] = useState(false)
+  const [mobOpen, setMobOpen] = useState(false) // laci menu di HP
   const path = pathname || ''
   const grupAktif = MENU.find(x => x.grup && x.items.some(i => i.href === path))?.grup
   const [buka, setBuka] = useState(grupAktif ? [grupAktif] : [])
@@ -81,9 +82,22 @@ export default function Sidebar() {
   }, [])
 
   function toggleGrup(g) { setBuka(b => b.includes(g) ? b.filter(x => x !== g) : [...b, g]) }
+  const diHp = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches
   function toggleMenu() {
+    if (diHp()) { setMobOpen(o => !o); return }
     setCollapsed(c => { try { sessionStorage.setItem('navCollapsed', c ? '0' : '1') } catch (e) {} return !c })
   }
+
+  // HP: laci menu menutup sendiri setelah pindah halaman, bisa ditutup dengan tombol Esc, dan halaman di belakangnya tidak ikut bergulir
+  useEffect(() => { setMobOpen(false) }, [pathname])
+  useEffect(() => {
+    if (!mobOpen) return
+    const tutupEsc = e => { if (e.key === 'Escape') setMobOpen(false) }
+    document.addEventListener('keydown', tutupEsc)
+    const lama = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', tutupEsc); document.body.style.overflow = lama }
+  }, [mobOpen])
 
   useEffect(() => {
     // catat "terakhir online" tiap 30 detik selagi aplikasi terbuka
@@ -106,8 +120,9 @@ export default function Sidebar() {
 
   return (
     <>
-      <button className="hamburger-btn" onClick={toggleMenu} aria-label="Buka/tutup menu"><span></span></button>
-      <div className={`sidebar${collapsed ? ' collapsed' : ''}`}>
+      <button className="hamburger-btn" onClick={toggleMenu} aria-label="Buka/tutup menu" aria-expanded={mobOpen}><span></span></button>
+      <div className={`sidebar-scrim${mobOpen ? ' show' : ''}`} onClick={() => setMobOpen(false)} aria-hidden="true" />
+      <div className={`sidebar${collapsed ? ' collapsed' : ''}${mobOpen ? ' mobile-open' : ''}`}>
       <div className="brand">
         <div className="brand-logo">
           <img src="/logo-pmi.png?v=3" alt="Lambang Palang Merah Indonesia" width={40} height={40} />

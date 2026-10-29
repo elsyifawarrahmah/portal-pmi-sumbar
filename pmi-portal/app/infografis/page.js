@@ -120,7 +120,7 @@ export default function InfografisPage() {
         <div style={{ background: '#fff', borderRadius: 22, padding: 0, overflow: 'clip', boxShadow: '0 16px 50px rgba(32,28,26,.12)', border: '3px solid var(--pmi-red)' }}>
 
           {/* HERO */}
-          <div style={{ background: 'linear-gradient(135deg, var(--pmi-red) 0%, var(--pmi-red-dark) 100%)', padding: '32px 32px 26px', color: '#fff', position: 'relative' }}>
+          <div className="poster-hero" style={{ background: 'linear-gradient(135deg, var(--pmi-red) 0%, var(--pmi-red-dark) 100%)', padding: '32px 32px 26px', color: '#fff', position: 'relative' }}>
             <div style={{ display: 'inline-block', background: 'rgba(255,255,255,.2)', padding: '4px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 12 }}>Infografis</div>
             <h1 style={{ margin: '0 0 12px', fontSize: 'clamp(22px,3.2vw,32px)', fontWeight: 800, lineHeight: 1.15 }}>{show.judul}</h1>
             <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.7, opacity: .95, maxWidth: 820 }}>{show.deskripsi || 'Belum ada deskripsi.'}</p>
@@ -138,7 +138,7 @@ export default function InfografisPage() {
             </div>
           </div>
 
-          <div style={{ padding: '26px 28px', background: 'var(--cream)' }}>
+          <div className="poster-body" style={{ padding: '26px 28px', background: 'var(--cream)' }}>
 
             {/* DAMPAK */}
             <div className="ribbon"><Ikon nama="alert" size={18} /> DAMPAK BENCANA</div>
@@ -157,8 +157,8 @@ export default function InfografisPage() {
             {/* PETA */}
             <div className="ribbon" style={{ marginTop: 22 }}><Ikon nama="peta" size={18} /> PETA WILAYAH TERDAMPAK</div>
             <div className="poster-section" style={bagianKecil}>
-              <div style={{ display: 'grid', gridTemplateColumns: editing ? '1fr' : '1fr 1.1fr', gap: 20, alignItems: 'start' }}>
-                <div style={editing ? undefined : { position: 'sticky', top: 96, alignSelf: 'start' }}>
+              <div className="stack-hp" style={{ display: 'grid', gridTemplateColumns: editing ? '1fr' : '1fr 1.1fr', gap: 20, alignItems: 'start' }}>
+                <div className="peta-sticky" style={editing ? undefined : { position: 'sticky', top: 96, alignSelf: 'start' }}>
                   <PetaSumbar statusWilayah={show.wilayah_status} aktif={aktifWilayah} onSelect={(id) => setAktifWilayah(id)} />
                   <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
                     {Object.entries(STATUS_WARNA).map(([k, v]) => (
@@ -240,7 +240,7 @@ export default function InfografisPage() {
             </div>
 
             {/* PENERIMA MANFAAT + SUMBER DAYA */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 22 }}>
+            <div className="stack-hp" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 22 }}>
               <div>
                 <div className="ribbon" style={{ background: 'linear-gradient(90deg, var(--stock) 0%, #163D2C 100%)' }}><Ikon nama="orang2" size={18} /> PENERIMA MANFAAT</div>
                 <div className="poster-section" style={{ ...bagianKecil, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -267,7 +267,7 @@ export default function InfografisPage() {
           </div>
 
           {/* FOOTER CTA */}
-          <div style={{ background: 'var(--pmi-red-dark)', color: '#fff', padding: '24px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          <div className="stack-hp poster-foot" style={{ background: 'var(--pmi-red-dark)', color: '#fff', padding: '24px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', opacity: .7, marginBottom: 10 }}>Contact Person</div>
               {show.kontak.length === 0 ? <div style={{ opacity: .7, fontSize: 13 }}>Belum ada kontak.</div> :

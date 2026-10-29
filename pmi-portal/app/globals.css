@@ -84,16 +84,6 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
 .row-click:hover{background:var(--cream);}
 
 @media (max-width: 768px){
-  .app{flex-direction:column;}
-  .sidebar{width:100%;height:auto;position:relative;flex-direction:column;align-items:stretch;padding:12px 14px;gap:10px;margin-left:0;}
-  .sidebar.collapsed{display:none;}
-  .sidebar:not(.collapsed) .brand{padding-top:50px;}
-  .sidebar.collapsed ~ .main{padding-top:68px;}
-  .nav{display:flex;padding:0;overflow-x:auto;gap:6px;width:100%;}
-  .nav a{white-space:nowrap;padding:8px 14px;font-size:12.5px;margin-bottom:0;border:1px solid rgba(255,255,255,.18);border-radius:20px;flex-shrink:0;}
-  .sidebar-foot{border:none;padding:0;width:100%;display:flex;justify-content:flex-end;}
-  .main{padding:16px 16px 16px 16px;}
-  .topbar{flex-direction:column;align-items:flex-start;}
   .grid4{grid-template-columns:1fr 1fr;}
   .login-card{padding:26px 20px;margin:16px;}
 }
@@ -110,7 +100,6 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
 /* Judul kelompok menu di sidebar */
 .nav-section{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:#fff;opacity:.55;font-weight:700;padding:12px 12px 3px;}
 .sidebar-foot{flex-shrink:0;}
-@media (max-width:768px){ .nav-section{display:none;} }
 
 /* ===== Menu sidebar berkelompok (lipat/buka) ===== */
 .nav-ico{width:22px;height:22px;flex-shrink:0;opacity:.95;}
@@ -129,13 +118,6 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
 @media (max-width:768px){
   .main .topbar{margin:-8px -16px 16px;padding:8px 16px 10px;}
   .sidebar.collapsed ~ .main .topbar{padding-left:64px;}
-  .nav-group{display:contents;}
-  .nav-group-btn{display:none;}
-  .nav-group:not(.open) > .nav-sub,.nav-sub{display:contents;}
-  .nav-sub{border:none;margin:0;}
-  .nav-sub a,.nav a{padding:8px 14px;font-size:13px;}
-  .nav-ico{display:none;}
-  .main,.sidebar.collapsed ~ .main{margin-left:0 !important;}
 }
 
 /* ===== Infografis: panel edit (drawer) ===== */
@@ -384,3 +366,31 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
 .unit-badge.tidak{background:#FBE7E7;color:#B3261E;}
 .unit-hint{font-size:12.5px;color:var(--ink-soft);margin-top:3px;}
 .unit-memuat{padding:18px;color:var(--ink-soft);}
+
+
+/* ===== Tampilan HP: menu jadi laci di samping (kiri) + isi halaman tidak kejepit ===== */
+.sidebar-scrim{display:none;}
+@media (max-width:768px){
+  .app{display:block;}
+  /* laci menu: tertutup di luar layar, dibuka dengan tombol hamburger */
+  .sidebar,.sidebar.collapsed{width:min(84vw,320px);transform:translateX(-100%);visibility:hidden;transition:transform .25s ease, visibility 0s .25s;}
+  .sidebar.mobile-open,.sidebar.collapsed.mobile-open{transform:none;visibility:visible;transition:transform .25s ease;box-shadow:10px 0 32px rgba(0,0,0,.4);}
+  .sidebar:not(.collapsed) .brand,.sidebar.collapsed .brand{padding-top:68px;}
+  .sidebar-scrim{display:block;position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s ease;}
+  .sidebar-scrim.show{opacity:1;pointer-events:auto;}
+  .hamburger-btn{top:12px;left:12px;}
+  /* isi halaman */
+  .main,.sidebar.collapsed ~ .main{margin-left:0 !important;padding:14px 14px 40px;}
+  .main .topbar,.sidebar.collapsed ~ .main .topbar{margin:-14px -14px 14px;padding:12px 14px 12px 64px;min-height:62px;flex-direction:column;align-items:flex-start;gap:10px;}
+  .topbar h1{font-size:19px;}
+  .main.edit-open{margin-right:0;}
+  /* grid yang tadinya 2 kolom (inline style) jadi bertumpuk */
+  .stack-hp{grid-template-columns:1fr !important;}
+  .peta-sticky{position:static !important;}
+  .poster-hero{padding:22px 16px 20px !important;}
+  .poster-body{padding:18px 12px !important;}
+  .poster-foot{padding:20px 16px !important;}
+  .peta-sumbar{height:340px;}
+  .panel-head{padding:14px 16px;}
+  .panel-body{padding:14px 16px;}
+}

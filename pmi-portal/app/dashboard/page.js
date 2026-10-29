@@ -57,7 +57,7 @@ export default function Dashboard() {
           <div className="stat" style={{'--accent':'var(--pmi-red)'}}><div className="lbl">Total Donatur</div><div className="val">{donaturSet.size}</div></div>
         </div>
 
-        <div style={{display:'grid',gridTemplateColumns:'1.3fr 1fr',gap:16}}>
+        <div className="stack-hp" style={{display:'grid',gridTemplateColumns:'1.3fr 1fr',gap:16}}>
           <div className="panel"><div className="panel-head"><h3>Top 8 Barang Logistik</h3></div>
             <div className="panel-body"><Bar data={{labels:topBarang.map(x=>x[0]), datasets:[{data:topBarang.map(x=>x[1]), backgroundColor:'#2D6A4F', borderRadius:6}]}} options={{plugins:{legend:{display:false}}}} /></div>
           </div>
