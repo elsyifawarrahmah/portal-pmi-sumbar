@@ -1,5 +1,5 @@
 'use client'
-// Rincian satu wilayah: Kepengurusan, Markas, (khusus Provinsi) Pusdiklat dan Klinik.
+// Rincian satu wilayah: Kepengurusan, Markas, (khusus Provinsi) Pusdiklat dan Klinik (lihat components/UnitPanel.js).
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase-browser'
 import Sidebar from '@/components/Sidebar'
 import Ikon from '@/components/Ikon'
 import EditorPengurus from '@/components/EditorPengurus'
-import { statusMasaBakti, kelompokkanJabatan, pecahBaris, LABEL_UNIT } from '@/lib/organisasi'
+import UnitPanel from '@/components/UnitPanel'
+import { statusMasaBakti, kelompokkanJabatan, pecahBaris } from '@/lib/organisasi'
 
 const WARNA = { hijau: { background: 'var(--stock-bg)', color: 'var(--stock)' }, kuning: { background: 'var(--gold-bg)', color: 'var(--gold)' }, merah: { background: '#FBE7E7', color: '#B3261E' } }
 
@@ -20,7 +21,6 @@ export default function OrganisasiDetailPage() {
   const supabase = createClient()
   const [org, setOrg] = useState(null)
   const [pengurus, setPengurus] = useState([])
-  const [unit, setUnit] = useState([])
   const [loading, setLoading] = useState(true)
   const [pesan, setPesan] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
@@ -28,8 +28,6 @@ export default function OrganisasiDetailPage() {
   const [editPengurus, setEditPengurus] = useState(false)
   const [markasModal, setMarkasModal] = useState(false)
   const [markasForm, setMarkasForm] = useState({})
-  const [unitModal, setUnitModal] = useState(null) // { jenis, data }
-  const [unitForm, setUnitForm] = useState({})
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -62,10 +60,6 @@ export default function OrganisasiDetailPage() {
     setPesan(''); setOrg(o)
     const { data: p } = await supabase.from('pmi_pengurus').select('*').eq('organisasi_id', o.id).order('urut')
     setPengurus(p || [])
-    if (o.jenis === 'provinsi') {
-      const { data: u } = await supabase.from('pmi_unit').select('*').eq('organisasi_id', o.id).order('created_at')
-      setUnit(u || [])
-    } else setUnit([])
     setLoading(false)
   }
 
@@ -103,29 +97,6 @@ export default function OrganisasiDetailPage() {
     setMarkasModal(false); load()
   }
 
-  function bukaUnit(jenis, data) {
-    setError(''); setUnitModal({ jenis, data })
-    setUnitForm({ nama: data?.nama || '', alamat: data?.alamat || '', telp: data?.telp || '', email: data?.email || '', penanggung_jawab: data?.penanggung_jawab || '', keterangan: data?.keterangan || '' })
-  }
-  async function simpanUnit() {
-    if (!unitForm.nama.trim()) { setError('Nama wajib diisi.'); return }
-    setSaving(true)
-    const payload = { nama: unitForm.nama.trim(), alamat: unitForm.alamat.trim() || null, telp: unitForm.telp.trim() || null, email: unitForm.email.trim() || null, penanggung_jawab: unitForm.penanggung_jawab.trim() || null, keterangan: unitForm.keterangan.trim() || null }
-    const q = unitModal.data
-      ? supabase.from('pmi_unit').update(payload).eq('id', unitModal.data.id)
-      : supabase.from('pmi_unit').insert({ ...payload, organisasi_id: org.id, jenis: unitModal.jenis })
-    const { error: err } = await q
-    setSaving(false)
-    if (err) { setError(err.message); return }
-    setUnitModal(null); load()
-  }
-  async function hapusUnit(u) {
-    if (!confirm(`Hapus “${u.nama}”?`)) return
-    const { error: err } = await supabase.from('pmi_unit').delete().eq('id', u.id)
-    if (err) { alert('Gagal menghapus: ' + err.message); return }
-    load()
-  }
-
   const jenisUnit = provinsi && (tab === 'pusdiklat' || tab === 'klinik') ? tab : null
 
   return (
@@ -143,9 +114,6 @@ export default function OrganisasiDetailPage() {
           )}
           {isAdmin && tab === 'markas' && (
             <button className="btn btn-primary" onClick={bukaMarkas} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Ikon nama="edit" size={16} /> Ubah Data Markas</button>
-          )}
-          {isAdmin && jenisUnit && (
-            <button className="btn btn-primary" onClick={() => bukaUnit(jenisUnit, null)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Ikon nama="tambahKecil" size={16} /> {LABEL_UNIT[jenisUnit].tombol}</button>
           )}
         </div>
 
@@ -218,28 +186,7 @@ export default function OrganisasiDetailPage() {
         )}
 
         {/* ===== PUSDIKLAT / KLINIK ===== */}
-        {jenisUnit && (() => {
-          const L = LABEL_UNIT[jenisUnit]
-          const daftar = unit.filter(u => u.jenis === jenisUnit)
-          return daftar.length === 0 ? (
-            <div className="org-kosong">
-              <div className="org-kosong-judul">Data {L.judul} belum diisi</div>
-              <div>{isAdmin ? `Klik “${L.tombol}” untuk menambahkan.` : 'Data akan tampil setelah diisi oleh admin.'}</div>
-            </div>
-          ) : daftar.map(u => (
-            <div key={u.id} className="panel org-kartu">
-              <div className="org-kartu-bar"><h3 className="org-kartu-judul" style={{ margin: 0 }}>{u.nama}</h3>
-                {isAdmin && <div><button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12, marginRight: 6 }} onClick={() => bukaUnit(jenisUnit, u)}>Ubah</button>
-                  <button className="btn btn-ghost" style={{ padding: '4px 10px', fontSize: 12 }} onClick={() => hapusUnit(u)}>Hapus</button></div>}
-              </div>
-              <Baris label="Alamat">{u.alamat || '-'}</Baris>
-              <Baris label="Telepon">{u.telp || '-'}</Baris>
-              <Baris label="E-mail">{u.email ? <a className="org-link" href={'mailto:' + u.email}>{u.email}</a> : '-'}</Baris>
-              <Baris label={L.pj}>{u.penanggung_jawab || '-'}</Baris>
-              <Baris label={L.ket}>{u.keterangan || '-'}</Baris>
-            </div>
-          ))
-        })()}
+        {jenisUnit && <UnitPanel key={jenisUnit} jenis={jenisUnit} supabase={supabase} isAdmin={isAdmin} />}
       </div>
 
       {editPengurus && (
@@ -262,26 +209,6 @@ export default function OrganisasiDetailPage() {
         </div>
       )}
 
-      {unitModal && (() => {
-        const L = LABEL_UNIT[unitModal.jenis]
-        return (
-          <div className="modal-ov" onClick={e => { if (e.target === e.currentTarget) setUnitModal(null) }}>
-            <div className="modal-kotak">
-              <div className="modal-kepala"><h3 style={{ margin: 0 }}>{unitModal.data ? 'Ubah' : 'Tambah'} {L.judul}</h3><button onClick={() => setUnitModal(null)} className="modal-x"><Ikon nama="tutup" size={18} /></button></div>
-              <div className="modal-isi">
-                {error && <div className="error-box">{error}</div>}
-                <div className="field"><label>{L.nama}</label><input value={unitForm.nama} onChange={e => setUnitForm({ ...unitForm, nama: e.target.value })} /></div>
-                <div className="field"><label>Alamat — opsional</label><textarea rows={2} value={unitForm.alamat} onChange={e => setUnitForm({ ...unitForm, alamat: e.target.value })} /></div>
-                <div className="field"><label>Telepon — opsional</label><input value={unitForm.telp} onChange={e => setUnitForm({ ...unitForm, telp: e.target.value })} /></div>
-                <div className="field"><label>E-mail — opsional</label><input value={unitForm.email} onChange={e => setUnitForm({ ...unitForm, email: e.target.value })} /></div>
-                <div className="field"><label>{L.pj} — opsional</label><input value={unitForm.penanggung_jawab} onChange={e => setUnitForm({ ...unitForm, penanggung_jawab: e.target.value })} /></div>
-                <div className="field"><label>{L.ket} — opsional</label><textarea rows={3} value={unitForm.keterangan} onChange={e => setUnitForm({ ...unitForm, keterangan: e.target.value })} /></div>
-              </div>
-              <div className="modal-kaki"><button className="btn btn-ghost" onClick={() => setUnitModal(null)}>Batal</button><button className="btn btn-primary" onClick={simpanUnit} disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button></div>
-            </div>
-          </div>
-        )
-      })()}
     </div>
   )
 }

@@ -13,7 +13,7 @@ export default function BackupPage() {
     try {
       const XLSX = await import('xlsx')
 
-      const [logistik, air, donasi, barangKeluar, pengadaan, users, layananKes, kegBersih, unitPerl, alatKes, orgData, pengData, relData, unitOrg] = await Promise.all([
+      const [logistik, air, donasi, barangKeluar, pengadaan, users, layananKes, kegBersih, unitPerl, alatKes, orgData, pengData, relData, unitOrg, udok, pRen, pJad, pSdm, kLay, kKap, kPas, kRen, kAkt, kPet] = await Promise.all([
         supabase.from('logistik').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
         supabase.from('distribusi_air').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
         supabase.from('donasi').select('*, profiles:petugas_id(nama_lengkap)').order('tanggal', { ascending: false }),
@@ -28,6 +28,16 @@ export default function BackupPage() {
         supabase.from('pmi_pengurus').select('kelompok, jabatan, nama, urut, pmi_organisasi(nama, urut, masa_bakti)'),
         supabase.from('relawan').select('*, pmi_organisasi(nama, urut)'),
         supabase.from('pmi_unit').select('*, pmi_organisasi(nama)'),
+        supabase.from('unit_dokumen').select('*').order('tanggal', { ascending: false }),
+        supabase.from('pusdiklat_rencana').select('*').order('tahun').order('bulan'),
+        supabase.from('pusdiklat_jadwal').select('*').order('tgl_mulai'),
+        supabase.from('pusdiklat_sdm_terlatih').select('*').order('tahun').order('bulan'),
+        supabase.from('klinik_layanan').select('*'),
+        supabase.from('klinik_kapitasi').select('*').order('tahun').order('bulan'),
+        supabase.from('klinik_pasien_harian').select('*').order('tanggal').range(0, 9999),
+        supabase.from('klinik_rencana_giat').select('*').order('tahun').order('bulan'),
+        supabase.from('klinik_aktivitas').select('*').order('tanggal'),
+        supabase.from('klinik_jadwal_petugas').select('*').order('minggu_mulai'),
       ])
 
       const wb = XLSX.utils.book_new()
@@ -92,6 +102,23 @@ export default function BackupPage() {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((unitOrg.data||[]).map(r => ({
         'Wilayah': r.pmi_organisasi?.nama || '', 'Jenis': r.jenis, 'Nama': r.nama, 'Alamat': r.alamat || '', 'Telepon': r.telp || '', 'E-mail': r.email || '', 'Penanggung Jawab': r.penanggung_jawab || '', 'Keterangan': r.keterangan || '',
       }))), 'Pusdiklat & Klinik')
+
+      // Pusdiklat & Klinik (kosong bila tabel belum dibuat)
+      const bln = n => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][n - 1] || ''
+      const dok = (unit, jenis) => (udok.data || []).filter(r => r.unit === unit && r.jenis === jenis)
+      const sheet = (rows, nama) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), nama)
+      sheet(dok('pusdiklat', 'sk').map(r => ({ 'Nomor': r.nomor || '', 'Perihal': r.judul, 'Tanggal': r.tanggal || '', 'Tautan': r.link || '', 'Keterangan': r.keterangan || '' })), 'Pusdiklat - SK')
+      sheet((pRen.data || []).map(r => ({ 'Tahun': r.tahun, 'Bulan': bln(r.bulan), 'Pelatihan': r.nama_pelatihan, 'Sasaran': r.sasaran || '', 'Target Peserta': r.target_peserta ?? '', 'Keterangan': r.keterangan || '' })), 'Pusdiklat - Rencana')
+      sheet((pJad.data || []).map(r => ({ 'Mulai': r.tgl_mulai, 'Selesai': r.tgl_selesai || '', 'Pelatihan': r.nama_pelatihan, 'Tempat': r.tempat || '', 'Peserta': r.jumlah_peserta ?? '', 'Status': r.status || '', 'Keterangan': r.keterangan || '' })), 'Pusdiklat - Jadwal')
+      sheet((pSdm.data || []).map(r => ({ 'Tahun': r.tahun, 'Bulan': bln(r.bulan), 'SDM Terlatih': r.jumlah_sdm, 'Keterangan': r.keterangan || '' })), 'Pusdiklat - SDM Terlatih')
+      sheet(dok('pusdiklat', 'materi').map(r => ({ 'Kategori': r.kategori || '', 'Judul Materi': r.judul, 'Tanggal': r.tanggal || '', 'Tautan': r.link || '', 'Keterangan': r.keterangan || '' })), 'Pusdiklat - Materi')
+      sheet(dok('klinik', 'sk').map(r => ({ 'Nomor': r.nomor || '', 'Perihal': r.judul, 'Tanggal': r.tanggal || '', 'Tautan': r.link || '', 'Keterangan': r.keterangan || '' })), 'Klinik - SK')
+      sheet((kLay.data || []).map(r => ({ 'Jenis Layanan': r.jenis, 'Tersedia': r.aktif ? 'Ya' : 'Tidak', 'Keterangan': r.keterangan || '' })), 'Klinik - Jenis Layanan')
+      sheet((kKap.data || []).map(r => ({ 'Tahun': r.tahun, 'Bulan': bln(r.bulan), 'Peserta': r.jumlah_peserta ?? '', 'Total Kapitasi (Rp)': r.total_rupiah ?? '', 'Keterangan': r.keterangan || '' })), 'Klinik - Kapitasi')
+      sheet((kPas.data || []).map(r => ({ 'Tanggal': r.tanggal, 'Layanan': r.jenis_layanan, 'Kunjungan': r.kunjungan, 'Rujukan': r.rujukan, 'Keterangan': r.keterangan || '' })), 'Klinik - Laporan Harian')
+      sheet((kRen.data || []).map(r => ({ 'Tahun': r.tahun, 'Bulan': bln(r.bulan), 'Kegiatan': r.kegiatan, 'Penanggung Jawab': r.penanggung_jawab || '', 'Keterangan': r.keterangan || '' })), 'Klinik - Rencana Giat')
+      sheet((kAkt.data || []).map(r => ({ 'Tanggal': r.tanggal, 'Aktivitas': r.kegiatan, 'Penanggung Jawab': r.penanggung_jawab || '', 'Keterangan': r.keterangan || '' })), 'Klinik - Aktivitas')
+      sheet((kPet.data || []).map(r => ({ 'Awal Minggu': r.minggu_mulai, 'Hari': r.hari, 'Shift': r.shift || '', 'Petugas': r.nama, 'Peran': r.peran || '' })), 'Klinik - Jadwal Petugas')
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((users.data||[]).map(r => ({
         'Nama': r.nama_lengkap, 'Email': r.email, 'Role': r.role,
         'Terakhir Aktif': r.last_seen ? new Date(r.last_seen).toLocaleString('id-ID') : '',
@@ -119,7 +146,7 @@ export default function BackupPage() {
             
             <h3 style={{margin:'0 0 8px'}}>Backup Lengkap Portal Logistik</h3>
             <p style={{color:'var(--ink-soft)', fontSize:13.5, maxWidth:440, margin:'0 auto 20px'}}>
-              File Excel ini berisi 14 sheet: Logistik Masuk, Distribusi Air, Donasi Barang, Distribusi Barang Bantuan, Pengadaan, Layanan Kesehatan, Bersih-Bersih, Produksi Unit, Alat Kesehatan, Organisasi (Ketua & Markas), Kepengurusan, Relawan, Pusdiklat & Klinik, dan Data User.
+              File Excel ini berisi sheet: Logistik Masuk, Distribusi Air, Donasi Barang, Distribusi Barang Bantuan, Pengadaan, Layanan Kesehatan, Bersih-Bersih, Produksi Unit, Alat Kesehatan, Organisasi (Ketua & Markas), Kepengurusan, Relawan, Pusdiklat & Klinik (lama), 5 sheet Pusdiklat, 7 sheet Klinik, dan Data User.
               Simpan file ini secara berkala di komputer/Google Drive kantor sebagai cadangan.
             </p>
             <button className="btn btn-primary" onClick={buatBackup} disabled={loading} style={{padding:'12px 28px', fontSize:14}}>

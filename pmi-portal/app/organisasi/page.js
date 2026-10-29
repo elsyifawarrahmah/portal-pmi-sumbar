@@ -60,10 +60,18 @@ export default function OrganisasiPage() {
       const hitung = {}
       ;(p || []).forEach(x => { hitung[x.organisasi_id] = (hitung[x.organisasi_id] || 0) + 1 })
       setJumlahPengurus(hitung)
-      const { data: u } = await supabase.from('pmi_unit').select('jenis')
-      const hu = { pusdiklat: 0, klinik: 0 }
-      ;(u || []).forEach(x => { if (hu[x.jenis] !== undefined) hu[x.jenis] += 1 })
-      setUnitProv(hu)
+      // Jumlah data Pusdiklat & Klinik (0 bila tabel belum dibuat)
+      const hitungData = async (tabel, unit) => {
+        let q = supabase.from(tabel).select('id', { count: 'exact', head: true })
+        if (unit) q = q.eq('unit', unit)
+        const { count, error: e } = await q
+        return e ? 0 : count || 0
+      }
+      const [pd, pj, ps, kd, kl, kp] = await Promise.all([
+        hitungData('unit_dokumen', 'pusdiklat'), hitungData('pusdiklat_jadwal'), hitungData('pusdiklat_sdm_terlatih'),
+        hitungData('unit_dokumen', 'klinik'), hitungData('klinik_layanan'), hitungData('klinik_pasien_harian'),
+      ])
+      setUnitProv({ pusdiklat: pd + pj + ps, klinik: kd + kp })
     }
     setLoading(false)
   }
