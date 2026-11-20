@@ -3,9 +3,10 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
+import BottomNav from '@/components/BottomNav'
 
 // Ikon garis (gaya seragam, warna mengikuti teks)
-const IKON = {
+export const IKON = {
   home: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
   peta: <><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></>,
   paket: <><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></>,
@@ -25,7 +26,7 @@ function Ikon({ nama }) {
 }
 
 // Menu: tautan langsung + kelompok yang bisa dibuka/ditutup (hanya kelompok aktif yang terbuka otomatis)
-const MENU = [
+export const MENU = [
   { href: '/dashboard', label: 'Dashboard', icon: 'home' },
   { href: '/infografis', label: 'Infografis Bencana', icon: 'peta' },
   { href: '/organisasi', label: 'Organisasi', icon: 'gedung' },
@@ -100,6 +101,12 @@ export default function Sidebar() {
   }, [mobOpen])
 
   useEffect(() => {
+    const toggle = () => setMobOpen(o => !o)
+    window.addEventListener('portal:menu', toggle)
+    return () => window.removeEventListener('portal:menu', toggle)
+  }, [])
+
+  useEffect(() => {
     // catat "terakhir online" tiap 30 detik selagi aplikasi terbuka
     async function ping() {
       const { data: userData } = await supabase.auth.getUser()
@@ -155,6 +162,7 @@ export default function Sidebar() {
         Data tersimpan di database resmi PMI Sumbar.
       </div>
       </div>
+      <BottomNav />
     </>
   )
 }
