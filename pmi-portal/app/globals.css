@@ -475,3 +475,29 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
   .tiles-lain .tile-ikon svg{width:22px;height:22px;}
   .tiles-lain .tile-label{text-align:left;}
 }
+
+/* ===== Poster & Cetak ===== */
+.poster-aksi{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
+.poster-aksi .btn{display:inline-flex;align-items:center;gap:8px;}
+.poster-kertas{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--ink-soft);}
+.poster-kertas select{padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;}
+.poster-pesan{background:#E5F1E7;color:#1B4332;border:1px solid #BFDCC8;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;margin-bottom:14px;}
+.poster-wadah{width:100%;}
+.poster-cetak{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 16px 50px rgba(32,28,26,.16);}
+.poster-teks{margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;}
+.poster-teks summary{cursor:pointer;font-weight:700;}
+.poster-teks textarea{width:100%;margin-top:10px;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:10px;box-sizing:border-box;resize:vertical;}
+.poster-bantu{color:var(--ink-soft);font-size:13.5px;margin:12px 2px 0;}
+@media (max-width:768px){.poster-aksi .btn{flex:1 1 calc(50% - 10px);justify-content:center;font-size:14px;}.poster-kertas{flex:1 1 100%;}}
+/* form "Lengkapi poster" (khusus admin, hanya di halaman poster) */
+.poster-form{margin-bottom:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 16px;}
+.poster-form summary{cursor:pointer;font-weight:800;}
+.pf-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 16px;margin-top:12px;}
+.pf-grid label{display:flex;flex-direction:column;gap:5px;font-size:13.5px;font-weight:700;color:var(--ink-soft);}
+.pf-grid input,.pf-grid textarea{font:inherit;font-size:15px;font-weight:500;color:var(--ink);padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;}
+.pf-lebar{grid-column:1/-1;}
+.pf-foto{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pf-foto-item{position:relative;aspect-ratio:4/3;border-radius:10px;background-size:cover;background-position:center;border:1px solid var(--line);}
+.pf-foto-item button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.62);color:#fff;cursor:pointer;line-height:1;}
+.pf-foto-tambah{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:700;color:var(--pmi-red);background:#FBF3F3;border:1px dashed #D9A5AC;cursor:pointer;}
+@media (max-width:768px){.pf-grid{grid-template-columns:1fr;}}

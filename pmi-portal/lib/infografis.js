@@ -48,3 +48,69 @@ export const SUMBER_DAYA = [
   ['personil', 'perisai', 'Personil PMI'],
 ]
 export const STATUS_LABEL = { aman: 'Aman', ringan: 'Ringan', sedang: 'Sedang', parah: 'Parah' }
+
+// Isian khusus poster cetak: disimpan terpisah di data.poster supaya halaman Infografis dan panel edit tidak berubah
+export const POSTER_KOSONG = { pukul: '', sepeda_motor: 0, alkon: 0, kebutuhan_mendesak: [], tautan_donasi: '', media_sosial: '', foto: [] }
+export const POSTER_SUMBER_DAYA = [
+  ['ambulans', 'ambulans', 'Ambulans'],
+  ['pickup', 'truk', 'Pickup Granmax'],
+  ['minibus', 'bus', 'Minibus Double Cabin'],
+  ['truk_tanki', 'truk', 'Truk Tanki Air'],
+  ['sepeda_motor', 'truk', 'Sepeda Motor'],
+  ['alkon', 'radio', 'Alkon'],
+  ['personil', 'perisai', 'Personil PMI'],
+]
+// Gabungkan data Infografis dengan isian khusus poster menjadi satu objek siap tampil
+export function dataPoster(data) {
+  const x = { ...POSTER_KOSONG, ...(data.poster || {}) }
+  return { ...data, pukul_update: x.pukul, kebutuhan_mendesak: x.kebutuhan_mendesak, tautan_donasi: x.tautan_donasi, media_sosial: x.media_sosial, foto: x.foto,
+    sumber_daya: { ...(data.sumber_daya || {}), sepeda_motor: x.sepeda_motor, alkon: x.alkon } }
+}
+
+export const STATUS_WARNA = { parah: '#C8102E', sedang: '#E0A020', ringan: '#2D6A4F', aman: '#B9D6C4' }
+
+// Ukuran kertas (mm, landscape) untuk cetak poster
+export const KERTAS = { A4: [297, 210], A3: [420, 297], A2: [594, 420], A1: [841, 594] }
+export const POSTER_W = 1754
+export const POSTER_H = 1240
+
+const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
+export function tglID(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '')
+  return m ? `${Number(m[3])} ${BULAN[Number(m[2]) - 1]} ${m[1]}` : (s || '')
+}
+export const angkaID = n => Number(n || 0).toLocaleString('id-ID')
+
+// Nama wilayah seperti di papan: "Kab. Agam" / "Kota Padang"
+export function namaWilayah(f) {
+  const nama = f.properties.nama || ''
+  if (/^(kab\.?|kota|kabupaten)\s/i.test(nama)) return nama
+  return (String(f.properties.kode || '').startsWith('13.7') ? 'Kota ' : 'Kab. ') + nama
+}
+
+// Teks ringkasan siap kirim lewat WhatsApp (format tebal pakai *...*)
+export function ringkasanTeks(d, wilayah = []) {
+  const L = []
+  L.push(`*${d.judul || 'Infografis Bencana'}*`)
+  const waktu = [tglID(d.tanggal_update), d.pukul_update].filter(Boolean).join(' pukul ')
+  if (waktu) L.push(`Update: ${waktu}`)
+  if (d.status_keterangan) L.push(d.status_keterangan)
+  if (d.deskripsi) L.push('', d.deskripsi)
+  const dampak = DAMPAK.filter(([k]) => Number(d.dampak?.[k]) > 0).map(([k, , lb, st]) => `• ${lb}: ${angkaID(d.dampak[k])} ${st}`)
+  if (dampak.length) L.push('', '*Dampak*', ...dampak)
+  if (wilayah.length) L.push('', '*Wilayah terdampak*', ...wilayah.map(w => `• ${w}`))
+  const lay = LAYANAN.filter(([k]) => Number(d.layanan?.[k]) > 0).map(([k, , lb, st]) => `• ${lb}: ${angkaID(d.layanan[k])} ${st}`)
+  if (lay.length) L.push('', '*Layanan PMI*', ...lay)
+  const ban = (d.bantuan_items || []).filter(b => b.nama).map(b => `• ${b.nama}${b.jumlah ? ': ' + angkaID(b.jumlah) : ''}${b.satuan ? ' ' + b.satuan : ''}`)
+  if (ban.length) L.push('', '*Bantuan PMI*', ...ban)
+  const mend = (d.kebutuhan_mendesak || []).map(x => String(x).trim()).filter(Boolean)
+  if (mend.length) L.push('', '*Kebutuhan mendesak*', ...mend.map(x => `• ${x}`))
+  const sd = POSTER_SUMBER_DAYA.filter(([k]) => Number(d.sumber_daya?.[k]) > 0).map(([k, , lb]) => `• ${lb}: ${angkaID(d.sumber_daya[k])}`)
+  if (sd.length) L.push('', '*Sumber daya*', ...sd)
+  const r = d.rekening || {}
+  if (r.nomor) L.push('', `*Salurkan donasi*`, `${r.bank || 'Rekening'} ${r.nomor}${r.atas_nama ? ' a.n. ' + r.atas_nama : ''}`)
+  const kon = (d.kontak || []).filter(k => k.nama || k.nomor).map(k => `• ${k.nama}${k.nomor ? ' ' + k.nomor : ''}`)
+  if (kon.length) L.push('', '*Contact person*', ...kon)
+  if (d.media_sosial) L.push('', d.media_sosial)
+  return L.join('\n')
+}
