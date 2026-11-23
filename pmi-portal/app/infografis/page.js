@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import Sidebar from '@/components/Sidebar'
 import PetaSumbar, { REGIONS, STATUS_WARNA } from '@/components/PetaSumbar'
@@ -103,10 +104,17 @@ export default function InfografisPage() {
       <div className={'main' + (editing ? ' edit-open' : '')}>
         <div className="topbar">
           <div><h1>Infografis Bencana</h1><p className="desc">Ringkasan visual — dibagikan seperti poster, datanya tetap hidup.</p></div>
-          {isAdmin && !editing && (
-            <button className="btn btn-primary" onClick={mulaiEdit} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <Ikon nama="edit" size={16} /> Edit Data
-            </button>
+          {!editing && (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <Link href="/infografis/poster" className="btn btn-ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Ikon nama="unduh" size={16} /> Poster &amp; Cetak
+              </Link>
+              {isAdmin && (
+                <button className="btn btn-primary" onClick={mulaiEdit} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Ikon nama="edit" size={16} /> Edit Data
+                </button>
+              )}
+            </div>
           )}
         </div>
 

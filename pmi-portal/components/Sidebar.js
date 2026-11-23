@@ -43,8 +43,8 @@ export const MENU = [
     { href: '/alat-kesehatan', label: 'Alat Kesehatan' },
     { href: '/barang-keluar', label: 'Distribusi Barang Bantuan' },
   ] },
-  { grup: 'Bersih-Bersih', icon: 'tetes', items: [
-    { href: '/bersih-bersih', label: 'Semua Bersih-Bersih' },
+  { grup: 'WASH', icon: 'tetes', items: [
+    { href: '/bersih-bersih', label: 'Semua WASH' },
     { href: '/bersih/aksi-bersih', label: 'Aksi Bersih' },
     { href: '/air', label: 'Air Bersih (Distribusi)' },
     { href: '/bersih/sanitasi', label: 'Sanitasi (MCK)' },

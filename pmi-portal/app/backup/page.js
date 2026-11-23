@@ -78,7 +78,7 @@ export default function BackupPage() {
         'Tanggal': r.tanggal, 'Kegiatan': r.jenis_kegiatan, 'Kota/Kab': r.kota, 'Lokasi': r.lokasi || '',
         'Jumlah Relawan': r.jumlah_relawan ?? '', 'Terlayani': r.jumlah_terlayani, 'Satuan': r.satuan || '', 'Keterangan': r.keterangan || '',
         'Petugas': r.profiles?.nama_lengkap || '', 'Link Foto': r.file_bukti_url || '',
-      }))), 'Bersih-Bersih')
+      }))), 'WASH')
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet((unitPerl.data||[]).map(r => ({
         'Kategori': r.kategori, 'Unit / Perlengkapan': r.nama_unit, 'Jumlah': r.jumlah, 'Satuan': r.satuan || '',
         'Kondisi': r.kondisi || '', 'Lokasi Simpan': r.lokasi_simpan || '', 'Keterangan': r.keterangan || '',
@@ -146,7 +146,7 @@ export default function BackupPage() {
             
             <h3 style={{margin:'0 0 8px'}}>Backup Lengkap Portal Logistik</h3>
             <p style={{color:'var(--ink-soft)', fontSize:13.5, maxWidth:440, margin:'0 auto 20px'}}>
-              File Excel ini berisi sheet: Logistik Masuk, Distribusi Air, Donasi Barang, Distribusi Barang Bantuan, Pengadaan, Layanan Kesehatan, Bersih-Bersih, Produksi Unit, Alat Kesehatan, Organisasi (Ketua & Markas), Kepengurusan, Relawan, Pusdiklat & Klinik (lama), 5 sheet Pusdiklat, 7 sheet Klinik, dan Data User.
+              File Excel ini berisi sheet: Logistik Masuk, Distribusi Air, Donasi Barang, Distribusi Barang Bantuan, Pengadaan, Layanan Kesehatan, WASH, Produksi Unit, Alat Kesehatan, Organisasi (Ketua & Markas), Kepengurusan, Relawan, Pusdiklat & Klinik (lama), 5 sheet Pusdiklat, 7 sheet Klinik, dan Data User.
               Simpan file ini secara berkala di komputer/Google Drive kantor sebagai cadangan.
             </p>
             <button className="btn btn-primary" onClick={buatBackup} disabled={loading} style={{padding:'12px 28px', fontSize:14}}>

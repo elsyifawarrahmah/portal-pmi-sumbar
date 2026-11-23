@@ -12,7 +12,7 @@ function tgl(v) {
 
 const HEADER = { parah: '#B3122A', sedang: '#C77D0A', ringan: '#2D6A4F', aman: '#5B6B73' }
 const TEKS_STATUS = { parah: 'Dampak Parah', sedang: 'Dampak Sedang', ringan: 'Dampak Ringan', aman: 'Aman / Tidak Terdampak' }
-const MENU_ISI = [['/air', 'Air Bersih'], ['/layanan-kesehatan', 'Layanan Kesehatan'], ['/bersih-bersih', 'Bersih-Bersih'], ['/barang-keluar', 'Distribusi Barang Bantuan']]
+const MENU_ISI = [['/air', 'Air Bersih'], ['/layanan-kesehatan', 'Layanan Kesehatan'], ['/bersih-bersih', 'WASH'], ['/barang-keluar', 'Distribusi Barang Bantuan']]
 
 // Kelompokkan baris per jenis (dan satuan)
 function kelompok(rows, kunci, jumlahKey, satuanKey, satuanTetap) {
@@ -142,7 +142,7 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
               {adaAir && <Kartu ikon="tetes" warna={biru} nilai={fmt(totalLiter)} label="Liter air bersih" sub={`${fmt(air.length)} pengiriman`} />}
               {adaBarang && <Kartu ikon="paket" warna={emas} nilai={fmt(disetujui.length)} label="Pengiriman bantuan barang" sub={topBarang || (diajukan ? `${diajukan} menunggu persetujuan` : '')} />}
               {adaKes && <Kartu ikon="hati" warna={merah} nilai={fmt(totalPenerimaKes)} label="Penerima layanan kesehatan" sub={`${fmt(kesehatan.length)} kegiatan`} />}
-              {adaBersih && <Kartu ikon="bersih" warna={hijau} nilai={fmt(bersih.length)} label="Kegiatan bersih-bersih" sub={`${fmt(grupBersih.length)} jenis kegiatan`} />}
+              {adaBersih && <Kartu ikon="bersih" warna={hijau} nilai={fmt(bersih.length)} label="Kegiatan WASH" sub={`${fmt(grupBersih.length)} jenis kegiatan`} />}
             </div>
 
             {adaAir && (
@@ -175,7 +175,7 @@ export default function PanelWilayah({ nama, status, detail, air, barang, keseha
             )}
 
             {adaBersih && (
-              <Bagian ikon="bersih" judul="Bersih-Bersih" ada>
+              <Bagian ikon="bersih" judul="WASH" ada>
                 {grupBersih.map(g => (
                   <div key={g.nama + g.satuan} className="pw-baris"><span><strong>{g.nama}</strong></span><span>{fmt(g.kegiatan)} kegiatan · {fmt(g.jumlah)} {g.satuan}</span></div>
                 ))}

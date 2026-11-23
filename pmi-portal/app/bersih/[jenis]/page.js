@@ -1,6 +1,6 @@
 'use client'
 // Satu jenis kegiatan bersih-bersih (Aksi Bersih, Sanitasi, Promosi Kebersihan).
-// Datanya sama dengan "Semua Bersih-Bersih" (tabel kegiatan_bersih), hanya disaring per jenis.
+// Datanya sama dengan "Semua WASH" (tabel kegiatan_bersih), hanya disaring per jenis.
 import { useParams } from 'next/navigation'
 import DataPage from '@/components/DataPage'
 import Sidebar from '@/components/Sidebar'
@@ -26,7 +26,7 @@ export default function BersihJenisPage() {
   const cfg = JENIS[jenis]
   if (!cfg) {
     return (
-      <div className="app"><Sidebar /><div className="main"><div className="topbar"><div><h1>Halaman tidak ditemukan</h1><p className="desc">Pilih menu Bersih-Bersih dari sidebar.</p></div></div></div></div>
+      <div className="app"><Sidebar /><div className="main"><div className="topbar"><div><h1>Halaman tidak ditemukan</h1><p className="desc">Pilih menu WASH dari sidebar.</p></div></div></div></div>
     )
   }
   return (

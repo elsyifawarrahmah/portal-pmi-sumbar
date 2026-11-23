@@ -8,7 +8,7 @@ export default function BersihBersihPage() {
   return (
     <DataPage
       table="kegiatan_bersih"
-      title="Semua Bersih-Bersih"
+      title="Semua WASH"
       desc="Rekap seluruh kegiatan kebersihan PMI (air, sanitasi, dan kebersihan): Aksi Bersih, Sanitasi, Promosi Kebersihan, Sumur Bor / Pipanisasi, dll. Distribusi Air Bersih ada di menu Air Bersih."
       filterField={{ k: 'jenis_kegiatan', label: 'Semua kegiatan', opts: JENIS }}
       fields={[
