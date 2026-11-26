@@ -501,3 +501,5 @@ td{padding:10px 12px;border-bottom:1px solid var(--line);}
 .pf-foto-item button{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:0;background:rgba(0,0,0,.62);color:#fff;cursor:pointer;line-height:1;}
 .pf-foto-tambah{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:700;color:var(--pmi-red);background:#FBF3F3;border:1px dashed #D9A5AC;cursor:pointer;}
 @media (max-width:768px){.pf-grid{grid-template-columns:1fr;}}
+.poster-kustom{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--ink-soft);}
+.poster-kustom input{width:84px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;}

@@ -8,7 +8,7 @@ import Sidebar from '@/components/Sidebar'
 import Ikon from '@/components/Ikon'
 import PosterInfografis from '@/components/PosterInfografis'
 import SUMBAR_GEO from '@/components/sumbarGeo'
-import { KOSONG, DAMPAK, LAYANAN, PENERIMA, POSTER_SUMBER_DAYA as SUMBER_DAYA, POSTER_KOSONG, dataPoster, STATUS_LABEL, KERTAS, POSTER_W, POSTER_H, ringkasanTeks, tglID, namaWilayah } from '@/lib/infografis'
+import { KOSONG, DAMPAK, LAYANAN, PENERIMA, POSTER_SUMBER_DAYA as SUMBER_DAYA, POSTER_KOSONG, dataPoster, STATUS_LABEL, UKURAN, RASIO_MIN, RASIO_MAX, lebarRancangan, POSTER_H, ringkasanTeks, tglID, namaWilayah } from '@/lib/infografis'
 
 // Kecilkan foto otomatis (maks 1000 px) supaya ringan disimpan
 function kecilkan(file, maks = 1000, mutu = 0.78) {
@@ -34,7 +34,8 @@ export default function PosterPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [menyimpan, setMenyimpan] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [kertas, setKertas] = useState('A3')
+  const [ukuranId, setUkuranId] = useState('A3')
+  const [kustom, setKustom] = useState({ w: 300, h: 130 }) // cm
   const [pesan, setPesan] = useState('')
   const [sibuk, setSibuk] = useState('')
   const [lebar, setLebar] = useState(900)
@@ -58,7 +59,15 @@ export default function PosterPage() {
     ro.observe(wadah.current)
     return () => ro.disconnect()
   }, [])
-  const skala = Math.min(1, lebar / POSTER_W) || 0.3
+  // Ukuran terpilih (mm) -> rasio -> lebar rancangan poster
+  const cm = v => Math.min(500, Math.max(10, Number(v) || 10))
+  const preset = UKURAN.find(u => u.id === ukuranId)
+  const pw = preset ? preset.w : cm(kustom.w) * 10
+  const ph = preset ? preset.h : cm(kustom.h) * 10
+  const rasio = pw / ph
+  const dW = lebarRancangan(rasio)
+  const luarRasio = rasio < RASIO_MIN - 0.02 || rasio > RASIO_MAX + 0.02
+  const skala = Math.min(1, lebar / dW) || 0.3
 
   // data yang ditampilkan di poster = data Infografis + isian khusus poster (langsung terlihat saat diketik)
   const data = useMemo(() => dataPoster({ ...raw, poster: pf }), [raw, pf])
@@ -86,7 +95,7 @@ export default function PosterPage() {
       .map(f => `${namaWilayah(f)} (${STATUS_LABEL[ws[f.properties.id]]})`)
   }, [data])
   const teks = useMemo(() => ringkasanTeks(data, wilayahTeks), [data, wilayahTeks])
-  const namaBerkas = `infografis-pmi-sumbar-${data.tanggal_update || new Date().toISOString().slice(0, 10)}`
+  const namaBerkas = `infografis-pmi-sumbar-${data.tanggal_update || new Date().toISOString().slice(0, 10)}-${ukuranId}`
 
   function info(t) { setPesan(t); clearTimeout(info.t); info.t = setTimeout(() => setPesan(''), 5000) }
 
@@ -94,7 +103,7 @@ export default function PosterPage() {
     const { toBlob } = await import('html-to-image')
     const hp = /Android|iPhone|iPad/i.test(navigator.userAgent)
     // jaga-jaga: peramban HP sering gagal memuat gambar terlalu besar, jadi resolusinya diturunkan
-    const blob = await toBlob(poster.current, { pixelRatio: hp ? 2 : 3, cacheBust: true, backgroundColor: '#ffffff' })
+    const blob = await toBlob(poster.current, { pixelRatio: Math.max(1, Math.min(hp ? 2 : 3, (hp ? 6000 : 9000) / dW)), cacheBust: true, backgroundColor: '#ffffff' })
     if (!blob) throw new Error('Gambar gagal dibuat')
     return blob
   }
@@ -160,16 +169,18 @@ export default function PosterPage() {
 
   function cetak() { window.print() }
 
-  const [pw, ph] = KERTAS[kertas]
-  const skalaCetak = mmKePx(pw) / POSTER_W
+  // Cetak: poster diskalakan agar pas di kertas dan diletakkan di tengah (jika rasio kertas di luar rentang rancangan)
+  const skalaCetak = Math.min(mmKePx(pw) / dW, mmKePx(ph) / POSTER_H)
+  const geserX = (mmKePx(pw) - dW * skalaCetak) / 2
+  const geserY = (mmKePx(ph) - POSTER_H * skalaCetak) / 2
   const cssCetak = `
-    @page{size:${kertas} landscape;margin:0}
+    @page{size:${pw}mm ${ph}mm;margin:0}
     @media print{
       html,body{background:#fff !important;margin:0 !important;padding:0 !important}
       body *{visibility:hidden !important}
       .poster-cetak,.poster-cetak *{visibility:visible !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
       .poster-cetak{position:fixed !important;left:0;top:0;width:${pw}mm !important;height:${ph}mm !important;overflow:hidden;box-shadow:none !important;border-radius:0 !important;margin:0 !important}
-      .poster-skala{transform:scale(${skalaCetak}) !important;transform-origin:top left !important}
+      .poster-skala{transform:translate(${geserX}px,${geserY}px) scale(${skalaCetak}) !important;transform-origin:top left !important}
     }`
 
   return (
@@ -183,9 +194,20 @@ export default function PosterPage() {
         </div>
 
         <div className="poster-aksi poster-toolbar-tutup">
-          <label className="poster-kertas">Ukuran kertas
-            <select value={kertas} onChange={e => setKertas(e.target.value)}>{Object.keys(KERTAS).map(k => <option key={k}>{k}</option>)}</select>
+          <label className="poster-kertas">Ukuran
+            <select value={ukuranId} onChange={e => setUkuranId(e.target.value)}>
+              {['Kertas', 'Spanduk'].map(g => <optgroup key={g} label={g}>{UKURAN.filter(u => u.grup === g).map(u => <option key={u.id} value={u.id}>{u.label}</option>)}</optgroup>)}
+              <option value="kustom">Ukuran sendiri…</option>
+            </select>
           </label>
+          {ukuranId === 'kustom' && (
+            <span className="poster-kustom">
+              <input type="number" min="10" max="500" value={kustom.w} onChange={e => setKustom(k => ({ ...k, w: e.target.value }))} aria-label="Lebar (cm)" />
+              <span>×</span>
+              <input type="number" min="10" max="500" value={kustom.h} onChange={e => setKustom(k => ({ ...k, h: e.target.value }))} aria-label="Tinggi (cm)" />
+              <span>cm</span>
+            </span>
+          )}
           <button className="btn btn-primary" onClick={cetak}><Ikon nama="unduh" size={16} /> Cetak / Simpan PDF</button>
           <button className="btn btn-ghost" onClick={unduhGambar} disabled={!!sibuk}>{sibuk === 'png' ? 'Membuat gambar…' : 'Unduh Gambar (PNG)'}</button>
           <button className="btn btn-ghost" onClick={bagikan} disabled={!!sibuk}>{sibuk === 'bagi' ? 'Menyiapkan…' : 'Bagikan (WhatsApp)'}</button>
@@ -216,9 +238,9 @@ export default function PosterPage() {
         )}
 
         <div ref={wadah} className="poster-wadah">
-          <div className="poster-cetak" style={{ width: POSTER_W * skala, height: POSTER_H * skala }}>
-            <div className="poster-skala" style={{ width: POSTER_W, height: POSTER_H, transform: `scale(${skala})`, transformOrigin: 'top left' }}>
-              {!loading && <PosterInfografis ref={poster} data={data} />}
+          <div className="poster-cetak" style={{ width: dW * skala, height: POSTER_H * skala }}>
+            <div className="poster-skala" style={{ width: dW, height: POSTER_H, transform: `scale(${skala})`, transformOrigin: 'top left' }}>
+              {!loading && <PosterInfografis ref={poster} data={data} lebar={dW} />}
             </div>
           </div>
         </div>
@@ -227,6 +249,7 @@ export default function PosterPage() {
           <summary>Lihat teks ringkasan (caption siap kirim)</summary>
           <textarea readOnly value={teks} rows={12} onFocus={e => e.target.select()} />
         </details>
+        <p className="poster-bantu poster-toolbar-tutup">Ukuran terpilih: <b>{(pw / 10).toLocaleString('id-ID', { maximumFractionDigits: 1 })} × {(ph / 10).toLocaleString('id-ID', { maximumFractionDigits: 1 })} cm</b>. Susunan isi poster menyesuaikan ukuran ini.{luarRasio ? ' Perbandingan lebar dan tinggi di luar rentang rancangan (1,4 sampai 2,6), jadi poster diletakkan di tengah dengan tepi putih.' : ''} Untuk spanduk besar, pakai <b>Cetak / Simpan PDF</b> (tajam di ukuran berapa pun); gambar PNG dibatasi sekitar 8.000 piksel.</p>
         <p className="poster-bantu poster-toolbar-tutup">Tips cetak: di jendela cetak pilih <b>Simpan sebagai PDF</b> atau printer, atur margin ke <b>Tidak ada</b>, dan centang <b>Grafik latar belakang</b>. Ukuran kertas di atas sudah diatur otomatis.</p>
       </div>
     </div>

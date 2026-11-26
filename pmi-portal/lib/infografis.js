@@ -74,6 +74,22 @@ export const KERTAS = { A4: [297, 210], A3: [420, 297], A2: [594, 420], A1: [841
 export const POSTER_W = 1754
 export const POSTER_H = 1240
 
+// Pilihan ukuran cetak (mm). "kustom" = lebar x tinggi diisi sendiri (cm).
+export const UKURAN = [
+  { id: 'A4', grup: 'Kertas', label: 'A4  (29,7 × 21 cm)', w: 297, h: 210 },
+  { id: 'A3', grup: 'Kertas', label: 'A3  (42 × 29,7 cm)', w: 420, h: 297 },
+  { id: 'A2', grup: 'Kertas', label: 'A2  (59,4 × 42 cm)', w: 594, h: 420 },
+  { id: 'A1', grup: 'Kertas', label: 'A1  (84,1 × 59,4 cm)', w: 841, h: 594 },
+  { id: 'S200', grup: 'Spanduk', label: 'Spanduk 200 × 100 cm', w: 2000, h: 1000 },
+  { id: 'S230', grup: 'Spanduk', label: 'Spanduk 230 × 100 cm', w: 2300, h: 1000 },
+  { id: 'S300', grup: 'Spanduk', label: 'Spanduk 300 × 130 cm', w: 3000, h: 1300 },
+  { id: 'S400', grup: 'Spanduk', label: 'Spanduk 400 × 170 cm', w: 4000, h: 1700 },
+]
+export const RASIO_MIN = POSTER_W / POSTER_H
+export const RASIO_MAX = 2.6
+// Lebar rancangan poster (px) mengikuti rasio kertas: makin lebar ukurannya, makin lebar susunan isinya
+export const lebarRancangan = rasio => Math.round(POSTER_H * Math.min(Math.max(rasio || RASIO_MIN, RASIO_MIN), RASIO_MAX))
+
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
 export function tglID(s) {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || '')

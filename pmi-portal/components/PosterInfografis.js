@@ -36,7 +36,7 @@ function Judul({ children }) {
   return <div style={{ background: MERAH, color: '#fff', fontWeight: 800, fontSize: 19, letterSpacing: '.08em', textAlign: 'center', padding: '6px 14px', borderRadius: 999, textTransform: 'uppercase' }}>{children}</div>
 }
 
-const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
+const PosterInfografis = forwardRef(function PosterInfografis({ data, lebar }, ref) {
   const peta = useMemo(bangunPeta, [])
   const [qr, setQr] = useState('')
   const tautan = (data.tautan_donasi || '').trim()
@@ -67,14 +67,22 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
   const adaRek = !!(rek.nomor || rek.bank)
   const sdAktif = SUMBER_DAYA.filter(([k]) => Number(data.sumber_daya?.[k]) > 0)
 
+  // Susunan kolom menyesuaikan lebar poster: tambahan lebar dibagi ke kolom wilayah, peta, dan kanan
+  const W = lebar || POSTER_W
+  const extra = Math.max(0, W - POSTER_W)
+  const Lw = 392 + Math.round(extra * 0.18), Mw = 520 + Math.round(extra * 0.27)
+  const Mx = 40 + Lw + 20, Rx = Mx + Mw + 20, Rw = W - 40 - Rx
+  const photoW = Mw + 180 + Math.round(extra * 0.2)
+  const kolBantuan = Rw >= 1100 ? 6 : Rw >= 900 ? 5 : 4
+
   return (
-    <div ref={ref} style={{ position: 'relative', width: POSTER_W, height: POSTER_H, background: '#fff', fontFamily: FONT, color: TEKS, overflow: 'hidden', boxSizing: 'border-box', border: `6px solid ${MERAH}` }}>
+    <div ref={ref} style={{ position: 'relative', width: W, height: POSTER_H, background: '#fff', fontFamily: FONT, color: TEKS, overflow: 'hidden', boxSizing: 'border-box', border: `6px solid ${MERAH}` }}>
 
       {/* ===== KEPALA ===== */}
       <div style={{ position: 'absolute', left: 0, top: 22, width: 560, height: 78, background: MERAH, clipPath: 'polygon(0 0,100% 0,93% 100%,0 100%)', display: 'flex', alignItems: 'center', paddingLeft: 44 }}>
         <span style={{ color: '#fff', fontWeight: 800, fontSize: 56, letterSpacing: '.01em', textTransform: 'lowercase' }}>infografis</span>
       </div>
-      <div style={{ position: 'absolute', left: 580, top: 14, width: 800, height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <div style={{ position: 'absolute', left: 580, top: 14, width: W - 954, height: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <div style={{ fontWeight: 800, fontSize: (data.judul || '').length > 40 ? 40 : 48, lineHeight: 1.08 }}>{data.judul || 'Infografis Bencana'}</div>
       </div>
       <div style={{ position: 'absolute', right: 40, top: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -83,11 +91,11 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
       </div>
 
       {/* ===== RINGKASAN + UPDATE ===== */}
-      <div style={{ position: 'absolute', left: 40, top: 122, width: 1120, height: 118, fontSize: 21, lineHeight: 1.36, color: '#2E2926', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', left: 40, top: 122, width: W - 634, height: 118, fontSize: 21, lineHeight: 1.36, color: '#2E2926', overflow: 'hidden' }}>
         {data.deskripsi || ''}
         <div style={{ height: 5, background: MERAH, borderRadius: 3, position: 'absolute', left: 0, right: 0, bottom: 0 }} />
       </div>
-      <div style={{ position: 'absolute', left: 1190, top: 120, width: 524, height: 122 }}>
+      <div style={{ position: 'absolute', left: W - 564, top: 120, width: 524, height: 122 }}>
         <div style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, background: MERAH, borderRadius: 18 }} />
         <div style={{ position: 'absolute', left: 190, top: -2, width: 144, textAlign: 'center', background: '#fff', color: MERAH, fontWeight: 800, fontSize: 18, letterSpacing: '.1em', borderRadius: '0 0 12px 12px', padding: '3px 0', borderBottom: `3px solid ${MERAH}` }}>UPDATE</div>
         <div style={{ position: 'absolute', left: 14, right: 14, top: 38, bottom: 12, background: '#fff', borderRadius: 12, padding: '8px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4, fontSize: 21 }}>
@@ -98,7 +106,7 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
       </div>
 
       {/* ===== KOLOM KIRI: WILAYAH ===== */}
-      <div style={{ position: 'absolute', left: 40, top: 256, width: 392, height: 700, display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: 64, gap: 6, alignContent: 'start' }}>
+      <div style={{ position: 'absolute', left: 40, top: 256, width: Lw, height: 700, display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: 64, gap: 6, alignContent: 'start' }}>
         {kartu.length === 0 && <div style={{ gridColumn: '1/-1', color: '#7A6E69', fontSize: 18, padding: 10 }}>Belum ada wilayah terdampak yang ditandai.</div>}
         {kartu.slice(0, 20).map(r => (
           <div key={r.id} style={{ background: STATUS_WARNA[r.st], color: r.st === 'sedang' ? '#2A1F00' : '#fff', borderRadius: 12, padding: '6px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
@@ -109,7 +117,7 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
       </div>
 
       {/* ===== KOLOM TENGAH: PETA + DAMPAK ===== */}
-      <div style={{ position: 'absolute', left: 452, top: 256, width: 520, height: 700 }}>
+      <div style={{ position: 'absolute', left: Mx, top: 256, width: Mw, height: 700 }}>
         <div style={{ position: 'relative', height: 322 }}>
           <svg viewBox={`0 0 ${peta.w} ${peta.h}`} style={{ width: '100%', height: 300 }} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Peta dampak per kabupaten dan kota">
             {peta.wilayah.map(w => <path key={w.id} d={w.d} fill={STATUS_WARNA[ws[w.id] || 'aman']} stroke="#fff" strokeWidth="2.2" strokeLinejoin="round" />)}
@@ -133,7 +141,7 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
       </div>
 
       {/* ===== KOLOM KANAN: LAYANAN, BANTUAN, PENERIMA, KEBUTUHAN, SUMBER DAYA ===== */}
-      <div style={{ position: 'absolute', left: 992, top: 256, width: 722, height: 700 }}>
+      <div style={{ position: 'absolute', left: Rx, top: 256, width: Rw, height: 700 }}>
         <Judul>Layanan PMI</Judul>
         <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, height: 104 }}>
           {LAYANAN.map(([k, ik, lb, st]) => (
@@ -145,7 +153,7 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
           ))}
         </div>
         <div style={{ marginTop: 10 }}><Judul>Bantuan PMI</Judul></div>
-        <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gridAutoRows: 46, gap: '4px 10px', height: 192, alignContent: 'start' }}>
+        <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: `repeat(${kolBantuan},1fr)`, gridAutoRows: 46, gap: '4px 10px', height: 192, alignContent: 'start' }}>
           {bantuan.length === 0 && <div style={{ gridColumn: '1/-1', color: '#7A6E69', fontSize: 16 }}>Belum ada data bantuan.</div>}
           {bantuan.map((b, i) => (
             <div key={i} style={{ minWidth: 0 }}>
@@ -186,7 +194,7 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
       </div>
 
       {/* ===== KAKI: KONTAK, FOTO, DONASI ===== */}
-      <div style={{ position: 'absolute', left: 40, top: 972, width: 392, height: 224, border: `3px solid ${MERAH}`, borderRadius: 16, padding: '12px 16px', boxSizing: 'border-box' }}>
+      <div style={{ position: 'absolute', left: 40, top: 972, width: Lw, height: 224, border: `3px solid ${MERAH}`, borderRadius: 16, padding: '12px 16px', boxSizing: 'border-box' }}>
         <div style={{ color: MERAH, fontWeight: 800, fontSize: 15, letterSpacing: '.1em', marginBottom: 6 }}>CONTACT PERSON</div>
         {kontak.length === 0 && <div style={{ color: '#7A6E69', fontSize: 16 }}>Belum ada kontak.</div>}
         {kontak.map((k, i) => (
@@ -196,11 +204,11 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data }, ref) {
         ))}
       </div>
 
-      <div style={{ position: 'absolute', left: 452, top: 972, width: foto.length ? 700 : 0, height: 224, display: foto.length ? 'grid' : 'none', gridTemplateColumns: `repeat(${Math.max(foto.length, 1)},1fr)`, gap: 8, border: `3px solid ${MERAH}`, borderRadius: 16, padding: 6, boxSizing: 'border-box', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', left: Mx, top: 972, width: foto.length ? photoW : 0, height: 224, display: foto.length ? 'grid' : 'none', gridTemplateColumns: `repeat(${Math.max(foto.length, 1)},1fr)`, gap: 8, border: `3px solid ${MERAH}`, borderRadius: 16, padding: 6, boxSizing: 'border-box', overflow: 'hidden' }}>
         {foto.map((u, i) => <div key={i} style={{ borderRadius: 10, backgroundImage: `url(${u})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />)}
       </div>
 
-      <div style={{ position: 'absolute', left: foto.length ? 1172 : 452, top: 972, right: 40, height: 224, background: MERAH, color: '#fff', borderRadius: 16, padding: '14px 20px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 18 }}>
+      <div style={{ position: 'absolute', left: foto.length ? Mx + photoW + 20 : Mx, top: 972, right: 40, height: 224, background: MERAH, color: '#fff', borderRadius: 16, padding: '14px 20px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 18 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '.1em', opacity: .9 }}>SALURKAN DONASI MELALUI</div>
           {adaRek ? (
