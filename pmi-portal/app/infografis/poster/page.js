@@ -88,6 +88,38 @@ export default function PosterPage() {
     info(error ? 'Gagal menyimpan: ' + error.message : 'Isian poster tersimpan.')
   }
 
+  // Daftar kelengkapan: apa yang sudah terisi, apa yang belum, dan di mana mengisinya
+  const cek = useMemo(() => {
+    const ada = o => Object.values(o || {}).some(v => Number(v) > 0)
+    const ws = data.wilayah_status || {}
+    const d = data
+    const items = [
+      { label: 'Ringkasan kejadian', ok: !!(d.deskripsi || '').trim(), isi: 'Infografis → Edit Data → Umum' },
+      { label: 'Tanggal update', ok: !!d.tanggal_update, isi: 'Infografis → Edit Data → Umum' },
+      { label: 'Pukul update', ok: !!(d.pukul_update || '').trim(), isi: 'Lengkapi poster' },
+      { label: 'Wilayah terdampak', ok: Object.values(ws).some(v => v && v !== 'aman'), isi: 'Infografis → tandai tingkat dampak tiap kabupaten/kota' },
+      { label: 'Dampak', ok: ada(d.dampak), isi: 'Infografis → Edit Data → Dampak' },
+      { label: 'Layanan PMI', ok: ada(d.layanan), isi: 'Infografis → Edit Data → Layanan' },
+      { label: 'Bantuan PMI', ok: (d.bantuan_items || []).some(b => b.nama), isi: 'Infografis → Edit Data → Bantuan' },
+      { label: 'Penerima manfaat', ok: ada(d.penerima_manfaat), isi: 'Infografis → Edit Data → Penerima manfaat' },
+      { label: 'Sumber daya', ok: SUMBER_DAYA.some(([k]) => Number(d.sumber_daya?.[k]) > 0), isi: 'Infografis → Edit Data → Sumber daya (sepeda motor dan alkon di Lengkapi poster)' },
+      { label: 'Kebutuhan mendesak', ok: (d.kebutuhan_mendesak || []).some(x => String(x).trim()), isi: 'Lengkapi poster' },
+      { label: 'Foto dokumentasi', ok: (d.foto || []).length > 0, isi: 'Lengkapi poster' },
+      { label: 'Contact person', ok: (d.kontak || []).some(k => k.nama || k.nomor), isi: 'Infografis → Edit Data → Kontak' },
+      { label: 'Rekening donasi', ok: !!(d.rekening?.nomor), isi: 'Infografis → Edit Data → Kontak' },
+      { label: 'Kode QR donasi', ok: !!(d.tautan_donasi || '').trim(), isi: 'Lengkapi poster (tautan donasi)' },
+      { label: 'Media sosial', ok: !!(d.media_sosial || '').trim(), isi: 'Lengkapi poster' },
+    ]
+    const peringatan = []
+    if (Number(d.layanan?.distribusi_air_liter) > 0 && !(Number(d.layanan?.distribusi_air_jiwa) > 0)) peringatan.push('Air terdistribusi sudah terisi, tetapi penerima air masih 0 jiwa. Periksa lagi angkanya.')
+    if (Number(d.layanan?.distribusi_air_liter) > 0 && !(Number(d.penerima_manfaat?.air_bersih_jiwa) > 0)) peringatan.push('Penerima manfaat air bersih masih 0 jiwa padahal ada distribusi air.')
+    if (d.tanggal_update) {
+      const hari = Math.floor((Date.now() - new Date(d.tanggal_update + 'T00:00:00').getTime()) / 86400000)
+      if (hari > 30) peringatan.push(`Tanggal update sudah ${hari} hari lalu. Perbarui kalau ada data terbaru.`)
+    }
+    return { items, peringatan, terisi: items.filter(i => i.ok).length }
+  }, [data])
+
   const wilayahTeks = useMemo(() => {
     const ws = data.wilayah_status || {}
     return SUMBAR_GEO.features.filter(f => (ws[f.properties.id] || 'aman') !== 'aman')
@@ -215,6 +247,21 @@ export default function PosterPage() {
           <button className="btn btn-ghost" onClick={unduhExcel} disabled={!!sibuk}>{sibuk === 'xls' ? 'Menyiapkan…' : 'Data untuk Desainer (Excel)'}</button>
         </div>
         {pesan && <div className="poster-pesan poster-toolbar-tutup" role="status">{pesan}</div>}
+
+        {!loading && (
+          <div className="poster-lengkap poster-toolbar-tutup">
+            <div className="pl-judul">Kelengkapan poster <span>{cek.terisi} dari {cek.items.length} bagian terisi</span></div>
+            <div className="pl-bar"><i style={{ width: (cek.terisi / cek.items.length * 100) + '%' }} /></div>
+            <div className="pl-chips">{cek.items.map(i => <span key={i.label} className={'pl-chip ' + (i.ok ? 'ok' : 'kurang')}>{i.ok ? '✓' : '○'} {i.label}</span>)}</div>
+            {cek.items.some(i => !i.ok) ? (
+              <details className="pl-rinci" open>
+                <summary>Yang belum terisi (bagian kosong tidak ikut tercetak di poster)</summary>
+                <ul>{cek.items.filter(i => !i.ok).map(i => <li key={i.label}><b>{i.label}</b> <em>diisi di: {i.isi}</em></li>)}</ul>
+              </details>
+            ) : <p className="pl-siap">Semua bagian sudah terisi. Poster siap dicetak.</p>}
+            {cek.peringatan.map((t, i) => <p key={i} className="pl-warn">⚠ {t}</p>)}
+          </div>
+        )}
 
         {isAdmin && (
           <details className="poster-form poster-toolbar-tutup">

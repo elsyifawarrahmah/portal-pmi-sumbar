@@ -70,10 +70,21 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data, lebar }, r
   // Susunan kolom menyesuaikan lebar poster: tambahan lebar dibagi ke kolom wilayah, peta, dan kanan
   const W = lebar || POSTER_W
   const extra = Math.max(0, W - POSTER_W)
-  const Lw = 392 + Math.round(extra * 0.18), Mw = 520 + Math.round(extra * 0.27)
-  const Mx = 40 + Lw + 20, Rx = Mx + Mw + 20, Rw = W - 40 - Rx
-  const photoW = Mw + 180 + Math.round(extra * 0.2)
-  const kolBantuan = Rw >= 1100 ? 6 : Rw >= 900 ? 5 : 4
+  // Bagian yang belum diisi tidak ditampilkan di poster (tidak ikut tercetak); susunan menyesuaikan
+  const adaKartu = kartu.length > 0
+  const L0 = 392 + Math.round(extra * 0.18)
+  const Lw = adaKartu ? L0 : 0
+  const Mw = 520 + Math.round(extra * 0.27) + (adaKartu ? 0 : L0 + 20)
+  const Mx = adaKartu ? 40 + Lw + 20 : 40, Rx = Mx + Mw + 20, Rw = W - 40 - Rx
+  const layAktif = LAYANAN.filter(([k]) => Number(data.layanan?.[k]) > 0)
+  const penAktif = PENERIMA.filter(([k]) => Number(data.penerima_manfaat?.[k]) > 0)
+  const adaDonasi = adaRek || !!qr || !!data.media_sosial
+  const sisaKaki = (W - 80) - (kontak.length ? L0 + 20 : 0)
+  const photoW = adaDonasi ? Math.round((sisaKaki - 20) * 0.555) : sisaKaki
+  // Kalau kolom kanan hanya berisi 1-2 blok, huruf dan ikonnya diperbesar dan diletakkan di tengah supaya tidak terlihat lapang
+  const blokKanan = [layAktif.length > 0, bantuan.length > 0, penAktif.length > 0, mendesak.length > 0 || sdAktif.length > 0].filter(Boolean).length
+  const z = blokKanan <= 1 ? 1.7 : blokKanan === 2 ? 1.4 : 1
+  const kolBantuan = Math.min(bantuan.length || 1, Rw >= 1100 ? 6 : Rw >= 900 ? 5 : 4)
 
   return (
     <div ref={ref} style={{ position: 'relative', width: W, height: POSTER_H, background: '#fff', fontFamily: FONT, color: TEKS, overflow: 'hidden', boxSizing: 'border-box', border: `6px solid ${MERAH}` }}>
@@ -100,21 +111,20 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data, lebar }, r
         <div style={{ position: 'absolute', left: 190, top: -2, width: 144, textAlign: 'center', background: '#fff', color: MERAH, fontWeight: 800, fontSize: 18, letterSpacing: '.1em', borderRadius: '0 0 12px 12px', padding: '3px 0', borderBottom: `3px solid ${MERAH}` }}>UPDATE</div>
         <div style={{ position: 'absolute', left: 14, right: 14, top: 38, bottom: 12, background: '#fff', borderRadius: 12, padding: '8px 18px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4, fontSize: 21 }}>
           <div><b style={{ display: 'inline-block', width: 100 }}>Tanggal</b> : {tglID(data.tanggal_update) || '-'}</div>
-          <div><b style={{ display: 'inline-block', width: 100 }}>Pukul</b> : {data.pukul_update || '-'}</div>
+          {data.pukul_update ? <div><b style={{ display: 'inline-block', width: 100 }}>Pukul</b> : {data.pukul_update}</div> : null}
           {data.status_keterangan ? <div style={{ fontSize: 17, color: GELAP, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.status_keterangan}</div> : null}
         </div>
       </div>
 
       {/* ===== KOLOM KIRI: WILAYAH ===== */}
-      <div style={{ position: 'absolute', left: 40, top: 256, width: Lw, height: 700, display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: 64, gap: 6, alignContent: 'start' }}>
-        {kartu.length === 0 && <div style={{ gridColumn: '1/-1', color: '#7A6E69', fontSize: 18, padding: 10 }}>Belum ada wilayah terdampak yang ditandai.</div>}
+      {adaKartu && <div style={{ position: 'absolute', left: 40, top: 256, width: Lw, height: 700, display: 'grid', gridTemplateColumns: '1fr 1fr', gridAutoRows: 64, gap: 6, alignContent: 'start' }}>
         {kartu.slice(0, 20).map(r => (
           <div key={r.id} style={{ background: STATUS_WARNA[r.st], color: r.st === 'sedang' ? '#2A1F00' : '#fff', borderRadius: 12, padding: '6px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: r.nama.length > 19 ? 14 : r.nama.length > 15 ? 15.5 : 17, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.nama}</div>
             <div style={{ fontSize: 13.5, fontWeight: 600, opacity: .95, marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.info}</div>
           </div>
         ))}
-      </div>
+      </div>}
 
       {/* ===== KOLOM TENGAH: PETA + DAMPAK ===== */}
       <div style={{ position: 'absolute', left: Mx, top: 256, width: Mw, height: 700 }}>
@@ -140,93 +150,111 @@ const PosterInfografis = forwardRef(function PosterInfografis({ data, lebar }, r
         </div>
       </div>
 
-      {/* ===== KOLOM KANAN: LAYANAN, BANTUAN, PENERIMA, KEBUTUHAN, SUMBER DAYA ===== */}
-      <div style={{ position: 'absolute', left: Rx, top: 256, width: Rw, height: 700 }}>
-        <Judul>Layanan PMI</Judul>
-        <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 4, height: 104 }}>
-          {LAYANAN.map(([k, ik, lb, st]) => (
-            <div key={k} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <span style={{ color: GELAP, display: 'inline-flex' }}><Ikon nama={ik} size={34} stroke={1.7} /></span>
-              <div style={{ fontWeight: 800, fontSize: 21, lineHeight: 1 }}>{angkaID(data.layanan?.[k])}</div>
-              <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.1, color: '#4A403C' }}>{lb}<br /><span style={{ fontWeight: 600, color: '#7A6E69' }}>({st})</span></div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 10 }}><Judul>Bantuan PMI</Judul></div>
-        <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: `repeat(${kolBantuan},1fr)`, gridAutoRows: 46, gap: '4px 10px', height: 192, alignContent: 'start' }}>
-          {bantuan.length === 0 && <div style={{ gridColumn: '1/-1', color: '#7A6E69', fontSize: 16 }}>Belum ada data bantuan.</div>}
-          {bantuan.map((b, i) => (
-            <div key={i} style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 800, fontSize: 19, lineHeight: 1.05, color: GELAP }}>{angkaID(b.jumlah)}<span style={{ fontSize: 13, fontWeight: 700, color: '#4A403C' }}> {b.satuan}</span></div>
-              <div style={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.nama}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: `repeat(${PENERIMA.length},1fr)`, gap: 10 }}>
-          {PENERIMA.map(([k, lb]) => (
-            <div key={k} style={{ background: MERAH, color: '#fff', borderRadius: 14, padding: '8px 12px', textAlign: 'center' }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.1 }}>{k === 'total_jiwa' ? 'Total Layanan PMI' : 'Penerima Manfaat ' + lb}</div>
-              <div style={{ fontWeight: 800, fontSize: 28, lineHeight: 1.1 }}>{angkaID(data.penerima_manfaat?.[k])} <span style={{ fontSize: 15, fontWeight: 700 }}>Jiwa</span></div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, height: 232 }}>
+      {/* ===== KOLOM KANAN: hanya bagian yang ada isinya ===== */}
+      <div style={{ position: 'absolute', left: Rx, top: 256, width: Rw, height: 700, display: 'flex', flexDirection: 'column', gap: 18 * z, justifyContent: z > 1 ? 'center' : 'flex-start' }}>
+        {layAktif.length > 0 && (
           <div>
-            <Judul>Kebutuhan Mendesak</Judul>
-            <ul style={{ margin: '8px 0 0', padding: 0, listStyle: 'none', columns: 2, columnGap: 12, fontSize: 16, fontWeight: 700, lineHeight: 1.45 }}>
-              {mendesak.length === 0 && <li style={{ color: '#7A6E69', fontWeight: 600 }}>Belum diisi.</li>}
-              {mendesak.map((m, i) => <li key={i} style={{ breakInside: 'avoid', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span style={{ color: MERAH }}>&#9679;</span> {m}</li>)}
-            </ul>
-          </div>
-          <div>
-            <Judul>Sumber Daya</Judul>
-            <div style={{ marginTop: 8, display: 'grid', gap: 3 }}>
-              {sdAktif.length === 0 && <div style={{ color: '#7A6E69', fontWeight: 600, fontSize: 16 }}>Belum diisi.</div>}
-              {sdAktif.map(([k, ik, lb]) => (
-                <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 16, fontWeight: 700, lineHeight: 1.2 }}>
-                  <span style={{ color: GELAP, display: 'inline-flex', flexShrink: 0 }}><Ikon nama={ik} size={22} stroke={1.8} /></span>
-                  <b style={{ fontSize: 20, minWidth: 34 }}>{angkaID(data.sumber_daya[k])}</b> {k === 'personil' ? 'orang ' : 'unit '}{lb.replace(' PMI', '')}
+            <Judul>Layanan PMI</Judul>
+            <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: `repeat(${layAktif.length},1fr)`, gap: 4 }}>
+              {layAktif.map(([k, ik, lb, st]) => (
+                <div key={k} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                  <span style={{ color: GELAP, display: 'inline-flex' }}><Ikon nama={ik} size={Math.round(34 * z)} stroke={1.7} /></span>
+                  <div style={{ fontWeight: 800, fontSize: Math.round(21 * z), lineHeight: 1 }}>{angkaID(data.layanan?.[k])}</div>
+                  <div style={{ fontSize: Math.round(12 * z), fontWeight: 700, lineHeight: 1.1, color: '#4A403C' }}>{lb}<br /><span style={{ fontWeight: 600, color: '#7A6E69' }}>({st})</span></div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* ===== KAKI: KONTAK, FOTO, DONASI ===== */}
-      <div style={{ position: 'absolute', left: 40, top: 972, width: Lw, height: 224, border: `3px solid ${MERAH}`, borderRadius: 16, padding: '12px 16px', boxSizing: 'border-box' }}>
-        <div style={{ color: MERAH, fontWeight: 800, fontSize: 15, letterSpacing: '.1em', marginBottom: 6 }}>CONTACT PERSON</div>
-        {kontak.length === 0 && <div style={{ color: '#7A6E69', fontSize: 16 }}>Belum ada kontak.</div>}
-        {kontak.map((k, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 18.5, fontWeight: 800, lineHeight: 1.5 }}>
-            <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.nama}</span><span style={{ whiteSpace: 'nowrap' }}>{k.nomor}</span>
+        )}
+        {bantuan.length > 0 && (
+          <div>
+            <Judul>Bantuan PMI</Judul>
+            <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: `repeat(${kolBantuan},1fr)`, gridAutoRows: Math.round(46 * z), gap: '4px 10px', alignContent: 'start' }}>
+              {bantuan.map((b, i) => (
+                <div key={i} style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: Math.round(19 * z), lineHeight: 1.05, color: GELAP }}>{angkaID(b.jumlah)}<span style={{ fontSize: Math.round(13 * z), fontWeight: 700, color: '#4A403C' }}> {b.satuan}</span></div>
+                  <div style={{ fontSize: Math.round(13 * z), fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.nama}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-
-      <div style={{ position: 'absolute', left: Mx, top: 972, width: foto.length ? photoW : 0, height: 224, display: foto.length ? 'grid' : 'none', gridTemplateColumns: `repeat(${Math.max(foto.length, 1)},1fr)`, gap: 8, border: `3px solid ${MERAH}`, borderRadius: 16, padding: 6, boxSizing: 'border-box', overflow: 'hidden' }}>
-        {foto.map((u, i) => <div key={i} style={{ borderRadius: 10, backgroundImage: `url(${u})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />)}
-      </div>
-
-      <div style={{ position: 'absolute', left: foto.length ? Mx + photoW + 20 : Mx, top: 972, right: 40, height: 224, background: MERAH, color: '#fff', borderRadius: 16, padding: '14px 20px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 18 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '.1em', opacity: .9 }}>SALURKAN DONASI MELALUI</div>
-          {adaRek ? (
-            <>
-              <div style={{ fontWeight: 800, fontSize: foto.length ? 22 : 30, lineHeight: 1.15, marginTop: 4 }}>{rek.bank || 'Rekening'}</div>
-              <div style={{ fontWeight: 800, fontSize: foto.length ? 30 : 42, letterSpacing: '.02em', lineHeight: 1.1, overflowWrap: 'anywhere' }}>{rek.nomor}</div>
-              {rek.atas_nama && <div style={{ fontWeight: 700, fontSize: foto.length ? 16 : 22, marginTop: 4 }}>a.n. {rek.atas_nama}</div>}
-            </>
-          ) : <div style={{ fontSize: 18, marginTop: 8 }}>Rekening donasi belum diisi.</div>}
-          {data.media_sosial ? <div style={{ fontWeight: 700, fontSize: 16, marginTop: 8, opacity: .95 }}>{data.media_sosial}</div> : null}
-        </div>
-        {qr && (
-          <div style={{ background: '#fff', borderRadius: 14, padding: 8, flexShrink: 0, textAlign: 'center' }}>
-            <img src={qr} alt="Kode QR donasi" style={{ width: 150, height: 150, display: 'block' }} />
-            <div style={{ color: TEKS, fontWeight: 800, fontSize: 12, marginTop: 2 }}>Scan untuk donasi</div>
+        )}
+        {penAktif.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${penAktif.length},1fr)`, gap: 10 }}>
+            {penAktif.map(([k, lb]) => (
+              <div key={k} style={{ background: MERAH, color: '#fff', borderRadius: 14, padding: '8px 12px', textAlign: 'center' }}>
+                <div style={{ fontSize: 13.5 * z, fontWeight: 700, lineHeight: 1.1 }}>{k === 'total_jiwa' ? 'Total Layanan PMI' : 'Penerima Manfaat ' + lb}</div>
+                <div style={{ fontWeight: 800, fontSize: Math.round(28 * z), lineHeight: 1.1 }}>{angkaID(data.penerima_manfaat?.[k])} <span style={{ fontSize: 15, fontWeight: 700 }}>Jiwa</span></div>
+              </div>
+            ))}
+          </div>
+        )}
+        {(mendesak.length > 0 || sdAktif.length > 0) && (
+          <div style={{ display: 'grid', gridTemplateColumns: mendesak.length > 0 && sdAktif.length > 0 ? '1fr 1fr' : '1fr', gap: 12 }}>
+            {mendesak.length > 0 && (
+              <div>
+                <Judul>Kebutuhan Mendesak</Judul>
+                <ul style={{ margin: '8px 0 0', padding: 0, listStyle: 'none', columns: 2, columnGap: 12, fontSize: Math.round(16 * z), fontWeight: 700, lineHeight: 1.45 }}>
+                  {mendesak.map((m, i) => <li key={i} style={{ breakInside: 'avoid', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span style={{ color: MERAH }}>&#9679;</span> {m}</li>)}
+                </ul>
+              </div>
+            )}
+            {sdAktif.length > 0 && (
+              <div>
+                <Judul>Sumber Daya</Judul>
+                <div style={{ marginTop: 8, display: 'grid', gap: 3 }}>
+                  {sdAktif.map(([k, ik, lb]) => (
+                    <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: Math.round(16 * z), fontWeight: 700, lineHeight: 1.2 }}>
+                      <span style={{ color: GELAP, display: 'inline-flex', flexShrink: 0 }}><Ikon nama={ik} size={22} stroke={1.8} /></span>
+                      <b style={{ fontSize: 20, minWidth: 34 }}>{angkaID(data.sumber_daya[k])}</b> {k === 'personil' ? 'orang ' : 'unit '}{lb.replace(' PMI', '')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* ===== KAKI: kontak, foto, donasi (yang kosong tidak ditampilkan) ===== */}
+      {(kontak.length > 0 || foto.length > 0 || adaDonasi) && (
+        <div style={{ position: 'absolute', left: 40, right: 40, top: 972, height: 224, display: 'flex', gap: 20 }}>
+          {kontak.length > 0 && (
+            <div style={{ flex: `0 0 ${L0}px`, border: `3px solid ${MERAH}`, borderRadius: 16, padding: '12px 16px', boxSizing: 'border-box', minWidth: 0 }}>
+              <div style={{ color: MERAH, fontWeight: 800, fontSize: 15, letterSpacing: '.1em', marginBottom: 6 }}>CONTACT PERSON</div>
+              {kontak.map((k, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 18.5, fontWeight: 800, lineHeight: 1.5 }}>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.nama}</span><span style={{ whiteSpace: 'nowrap' }}>{k.nomor}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {foto.length > 0 && (
+            <div style={{ flex: adaDonasi ? `0 0 ${photoW}px` : '1 1 0', display: 'grid', gridTemplateColumns: `repeat(${foto.length},1fr)`, gap: 8, border: `3px solid ${MERAH}`, borderRadius: 16, padding: 6, boxSizing: 'border-box', overflow: 'hidden', minWidth: 0 }}>
+              {foto.map((u, i) => <div key={i} style={{ borderRadius: 10, backgroundImage: `url(${u})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />)}
+            </div>
+          )}
+          {adaDonasi && (
+            <div style={{ flex: '1 1 0', minWidth: 0, background: MERAH, color: '#fff', borderRadius: 16, padding: '14px 20px', boxSizing: 'border-box', display: 'flex', alignItems: 'center', gap: 18 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {adaRek && <>
+                  <div style={{ fontWeight: 800, fontSize: 15, letterSpacing: '.1em', opacity: .9 }}>SALURKAN DONASI MELALUI</div>
+                  <div style={{ fontWeight: 800, fontSize: foto.length ? 22 : 30, lineHeight: 1.15, marginTop: 4 }}>{rek.bank || 'Rekening'}</div>
+                  <div style={{ fontWeight: 800, fontSize: foto.length ? 30 : 42, letterSpacing: '.02em', lineHeight: 1.1, overflowWrap: 'anywhere' }}>{rek.nomor}</div>
+                  {rek.atas_nama && <div style={{ fontWeight: 700, fontSize: foto.length ? 16 : 22, marginTop: 4 }}>a.n. {rek.atas_nama}</div>}
+                </>}
+                {data.media_sosial ? <div style={{ fontWeight: 700, fontSize: 16, marginTop: adaRek ? 8 : 0, opacity: .95 }}>{data.media_sosial}</div> : null}
+              </div>
+              {qr && (
+                <div style={{ background: '#fff', borderRadius: 14, padding: 8, flexShrink: 0, textAlign: 'center' }}>
+                  <img src={qr} alt="Kode QR donasi" style={{ width: 150, height: 150, display: 'block' }} />
+                  <div style={{ color: TEKS, fontWeight: 800, fontSize: 12, marginTop: 2 }}>Scan untuk donasi</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ===== PITA BAWAH ===== */}
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 32, background: GELAP, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', fontSize: 14.5, fontWeight: 700, letterSpacing: '.03em' }}>
